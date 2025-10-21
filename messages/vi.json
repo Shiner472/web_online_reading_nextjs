@@ -1,0 +1,84 @@
+{
+    "LoginPage": {
+        "title": "Đăng Nhập",
+        "email": "Email/Tên Đăng Nhập",
+        "password": "Mật Khẩu",
+        "submit": "Đăng Nhập",
+        "forgotPassword": "Quên Mật Khẩu?",
+        "noAccount": "Chưa có tài khoản?",
+        "register": "Đăng Ký",
+        "fillAllFields": "Vui lòng điền tất cả các trường",
+        "invalidCredentials": "Email hoặc mật khẩu không đúng",
+        "networkError": "Lỗi kết nối mạng, vui lòng thử lại sau",
+        "serverError": "Lỗi máy chủ, vui lòng thử lại sau",
+        "unexpectedError": "Đã xảy ra lỗi, vui lòng thử lại sau",
+        "loading": "Đang tải..."
+    },
+    "RegisterPage": {
+        "title": "Đăng Ký",
+        "username": "Tên Đăng Nhập",
+        "email": "Email",
+        "password": "Mật Khẩu",
+        "confirmPassword": "Xác Nhận Mật Khẩu",
+        "submit": "Đăng Ký",
+        "haveAccount": "Đã có tài khoản?",
+        "login": "Đăng Nhập",
+        "fillAllFields": "Vui lòng điền tất cả các trường"
+    },
+    "VerifyPage": {
+        "title": "Xác Nhận Tài Khoản",
+        "description": "Vui lòng nhập mã xác nhận đã gửi đến email của bạn.",
+        "submit": "Xác Nhận",
+        "fillAllFields": "Vui lòng điền tất cả các trường"
+    },
+    "ResetNewPasswordPage": {
+        "title": "Đặt Lại Mật Khẩu",
+        "description": "Vui lòng nhập mật khẩu mới của bạn bên dưới.",
+        "newPassword": "Mật Khẩu Mới",
+        "confirmPassword": "Xác Nhận Mật Khẩu",
+        "submit": "Đặt Lại Mật Khẩu",
+        "passwordMismatch": "Mật khẩu không khớp",
+        "fillAllFields": "Vui lòng điền tất cả các trường"
+    },
+    "ForgotPasswordPage": {
+        "title": "Quên Mật Khẩu",
+        "description": "Nhập email của bạn để nhận mã đặt lại mật khẩu.",
+        "buttonText": "Gửi Mã",
+        "fillAllFields": "Vui lòng điền tất cả các trường",
+        "haveAccount": "Bạn đã có tài khoản?",
+        "linkLogin": "Đăng Nhập"
+    },
+
+
+
+
+    "ManageCategoryPage": {
+        "title": "Quản Lý Danh Mục",
+        "addCategory": "Thêm Danh Mục",
+        "editCategory": "Chỉnh Sửa Danh Mục",
+        "deleteCategory": "Xóa Danh Mục",
+        "categoryName": "Tên Danh Mục",
+        "categoryNamePlaceholder": "Nhập tên danh mục",
+        "submit": "Lưu",
+        "cancel": "Hủy",
+        "confirmDelete": "Bạn có chắc chắn muốn xóa danh mục này không?",
+        "loading": "Đang tải...",
+        "noCategories": "Chưa có danh mục nào.",
+        "searchPlaceholder": "Tìm kiếm danh mục...",
+        "previous": "Trước",
+        "next": "Tiếp",
+        "page": "Trang",
+        "of": "của",
+        "actions": "Hành Động",
+        "categoryList": "Danh Sách Danh Mục",
+        "update": "Cập Nhật",
+        "delete": "Xóa",
+        "addCategorySuccess": "Thêm danh mục thành công",
+        "addCategoryError": "Thêm danh mục thất bại, vui lòng thử lại sau",
+        "deleteCategorySuccess": "Xóa danh mục thành công",
+        "deleteCategoryError": "Xóa danh mục thất bại, vui lòng thử lại sau",
+        "editCategorySuccess": "Cập nhật danh mục thành công",  
+        "editCategoryError": "Cập nhật danh mục thất bại, vui lòng thử lại sau",
+        "networkError": "Lỗi kết nối mạng, vui lòng thử lại sau"
+    }
+}
