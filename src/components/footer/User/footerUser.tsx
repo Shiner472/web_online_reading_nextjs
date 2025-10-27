@@ -1,9 +1,17 @@
 'use client';
 import CategoryAPI from "api/categoryAPI";
+import SettingsAPI from "api/settingsAPI";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const FooterUser = () => {
     const [listCategories, setListCategories] = useState<any[]>([]);
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [iconPreview, setIconPreview] = useState<string | null>(null);
+    const [nameWebsite, setNameWebsite] = useState<string>('');
+    const [emailWebsite, setEmailWebsite] = useState<string>('');
+    const [phoneNumber, setPhoneNumber] = useState<string>('');
+    const [descriptionWebsite, setDescriptionWebsite] = useState<string>('');
 
     useEffect(() => {
         CategoryAPI.getAllCategories()
@@ -26,6 +34,27 @@ const FooterUser = () => {
         return result;
     })();
 
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await SettingsAPI.getSettings().then((res) => res.data);
+                if (res) {
+                    setLogoPreview(res.logo || null);
+                    setIconPreview(res.iconLogo || null);
+                    setNameWebsite(res.nameWebsite || '');
+                    setEmailWebsite(res.emailWebsite || '');
+                    setPhoneNumber(res.phoneWebsite || '');
+                    setDescriptionWebsite(res.descriptionWebsite || '');
+                }
+            } catch (error) {
+                toast.error("❌ Có lỗi xảy ra khi tải cài đặt!");
+            }
+        };
+
+        fetchSettings();
+    }, []);
+
     return (
         <footer className="text-sm text-gray-700 mt-20 border-t border-gray-400">
             <div className="max-w-7xl mx-auto px-4 py-8">
@@ -37,9 +66,8 @@ const FooterUser = () => {
                                 {col.map((cat: any, i: number) => (
                                     <p
                                         key={cat._id}
-                                        className={`cursor-pointer hover:text-blue-600 transition-colors ${
-                                            i === 0 ? "font-semibold" : ""
-                                        }`}
+                                        className={`cursor-pointer hover:text-blue-600 transition-colors ${i === 0 ? "font-semibold" : ""
+                                            }`}
                                     >
                                         {cat.name?.vi || cat.name}
                                     </p>
@@ -84,21 +112,12 @@ const FooterUser = () => {
                     <div>
                         <p className="font-semibold">Tải ứng dụng</p>
                         <div className="flex gap-2 mt-2">
-                            <button className="px-3 py-1 border rounded">VnExpress</button>
-                            <button className="px-3 py-1 border rounded">International</button>
-                        </div>
-                    </div>
-                    <div>
-                        <p className="font-semibold">Liên hệ</p>
-                        <div className="flex gap-4 mt-2">
-                            <span>📧 Tòa soạn</span>
-                            <span>📢 Quảng cáo</span>
+                            <button className="px-3 py-1 border rounded">{nameWebsite}</button>
                         </div>
                     </div>
                     <div>
                         <p className="font-semibold">Đường dây nóng</p>
-                        <p>083.888.0123 (Hà Nội)</p>
-                        <p>082.233.3555 (TP.HCM)</p>
+                        <p>{phoneNumber}</p>
                     </div>
                 </div>
 
@@ -107,7 +126,7 @@ const FooterUser = () => {
                     <div className="flex-1">
                         <p className="font-semibold text-lg">Đừng bỏ lỡ tin tức quan trọng!</p>
                         <p className="text-gray-600 text-sm">
-                            Nhận tóm tắt tin tức nổi bật, hấp dẫn nhất 24 giờ qua trên VnExpress.
+                            Nhận tóm tắt tin tức nổi bật, hấp dẫn nhất 24 giờ qua trên {nameWebsite}.
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -124,16 +143,11 @@ const FooterUser = () => {
 
                 {/* Thông tin bản quyền */}
                 <div className="mt-8 text-xs text-gray-600 space-y-2">
-                    <p>Báo điện tử VnExpress</p>
+                    <p>Báo điện tử {nameWebsite}</p>
                     <p>Báo tiếng Việt nhiều người xem nhất. Thuộc Bộ Khoa học và Công nghệ</p>
-                    <p>
-                        Giấy phép: 548/GP-BTTTT do Bộ Thông tin và Truyền thông cấp ngày 24/08/2021
-                    </p>
-                    <p>
-                        Tổng biên tập: Phạm Văn Hiếu | Địa chỉ: Tầng 10, Tòa A FPT Tower, số 10 Phạm Văn Bạch, Hà Nội
-                    </p>
-                    <p>Điện thoại: 024 7300 8899</p>
-                    <p>© 1997-2025. Toàn bộ bản quyền thuộc VnExpress</p>
+                    <p>Email: {emailWebsite}</p>
+                    <p>Điện thoại: {phoneNumber}</p>
+                    <p>© 1997-2025. Toàn bộ bản quyền thuộc {nameWebsite}</p>
                 </div>
             </div>
         </footer>

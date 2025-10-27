@@ -3,6 +3,15 @@ import { useEffect, useState } from "react";
 import LayoutMainPage from "./layout";
 import NewsAPI from "api/newsAPI";
 import CategoryAPI from "api/categoryAPI";
+import axios from "axios";
+
+interface WeatherData {
+  city: string;
+  temp: string;
+  desc: string;
+  icon: string;
+}
+
 
 const HomeUserPage = () => {
   const [listLatestNews, setListLatestNews] = useState<any[]>([]);
@@ -10,6 +19,15 @@ const HomeUserPage = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [categoryNews, setCategoryNews] = useState<Record<any, any>>({});
   const [featuredNews, setFeaturedNews] = useState<any[]>([]);
+
+  const [weatherList, setWeatherList] = useState<WeatherData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const cities = [
+    { name: "Hà Nội", query: "Hanoi" },
+    { name: "TP. HCM", query: "Ho Chi Minh" },
+    { name: "Đà Nẵng", query: "Da Nang" },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,6 +73,45 @@ const HomeUserPage = () => {
       setFeaturedNews(res.data);
     });
   }, []);
+
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const results = await Promise.all(
+          cities.map(async (city) => {
+            const res = await axios.get(
+              `https://wttr.in/${encodeURIComponent(city.query)}?format=j1`
+            );
+            const data = res.data.current_condition[0];
+            const desc = data.weatherDesc[0].value;
+            const temp = data.temp_C;
+
+            // Chọn emoji phù hợp với thời tiết
+            let icon = "☀️";
+            if (desc.toLowerCase().includes("mưa")) icon = "🌧️";
+            else if (desc.toLowerCase().includes("mây")) icon = "☁️";
+            else if (desc.toLowerCase().includes("nắng")) icon = "🌤️";
+
+            return {
+              city: city.name,
+              temp,
+              desc,
+              icon,
+            };
+          })
+        );
+        setWeatherList(results);
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu thời tiết:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWeather();
+  }, []);
+
   return (
     <LayoutMainPage>
       <main className="pt-6 px-4 md:px-8 max-w-7xl mx-auto bg-white">
@@ -192,36 +249,21 @@ const HomeUserPage = () => {
             <div>
               <h3 className="text-lg font-semibold border-b pb-2 mb-3">Thời tiết</h3>
               <div className="grid gap-3">
-                <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
-                  <div>
-                    <p className="font-medium">Hà Nội</p>
-                    <p className="text-sm text-gray-600">Nắng nhẹ</p>
+                {weatherList.map((w) => (
+                  <div
+                    key={w.city}
+                    className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm"
+                  >
+                    <div>
+                      <p className="font-medium">{w.city}</p>
+                      <p className="text-sm text-gray-600">{w.desc}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{w.icon}</span>
+                      <span className="font-semibold text-lg">{w.temp}°C</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">🌤️</span>
-                    <span className="font-semibold text-lg">32°C</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
-                  <div>
-                    <p className="font-medium">TP. HCM</p>
-                    <p className="text-sm text-gray-600">Có mưa</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">🌧️</span>
-                    <span className="font-semibold text-lg">29°C</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
-                  <div>
-                    <p className="font-medium">Đà Nẵng</p>
-                    <p className="text-sm text-gray-600">Âm u</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">☁️</span>
-                    <span className="font-semibold text-lg">30°C</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 

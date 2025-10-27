@@ -7,6 +7,10 @@ import AuthAPI from "api/authAPI";
 import CategoryAPI from "api/categoryAPI";
 import { io } from "socket.io-client";
 import NotificationAPI from "api/notificationAPI";
+import SettingsAPI from "api/settingsAPI";
+import { toast } from "react-toastify";
+import { log } from "console";
+
 
 interface UserInfo {
     _id: string,
@@ -40,6 +44,7 @@ const HeaderUser = () => {
 
     const [listCategories, setListCategories] = useState<Category[]>([]);
     const [keySearch, setKeySearch] = useState<string>();
+    const [logoPreview, setLogoPreview] = useState<string>();
 
     const [showNotifications, setShowNotifications] = useState(false);
 
@@ -64,7 +69,6 @@ const HeaderUser = () => {
         socket.on("connect", () => { });
 
         socket.on("newNotification", (data: NotificationItem) => {
-            console.log("🔔 Nhận thông báo mới:", data);
             setNotifications(prev => [data, ...prev]);
         });
 
@@ -95,6 +99,22 @@ const HeaderUser = () => {
                 setListCategories(categories);
             })
             .catch(error => console.error("Error fetching categories:", error));
+    }, []);
+
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await SettingsAPI.getSettings().then((res) => res.data);
+                if (res) {
+                    setLogoPreview(res.logo || null);
+                }
+            } catch (error) {
+                toast.error("❌ Có lỗi xảy ra khi tải cài đặt!");
+            }
+        };
+
+        fetchSettings();
     }, []);
 
     const mainCategories = listCategories.slice(0, 5);
@@ -140,7 +160,13 @@ const HeaderUser = () => {
                 <div className="container mx-auto px-4 h-16 flex items-center">
                     <div className="flex items-center justify-between w-full max-w-6xl mx-auto">
                         {/* Logo */}
-                        <a href="/" className="text-xl font-bold text-gray-800">MyApp</a>
+                        <a href="/" className="flex items-center space-x-3">
+                            <img
+                                src={logoPreview}
+                                alt="Logo"
+                                className="h-10 w-auto"
+                            />
+                        </a>
 
                         {/* Nav + Search */}
                         <div className="flex items-center space-x-4 ml-auto">

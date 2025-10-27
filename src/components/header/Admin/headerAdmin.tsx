@@ -37,10 +37,10 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
                 }
             >
                 <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-blue-600 text-white flex items-center justify-center font-bold rounded">
-                        P
+                    <div className="w-8 h-8 flex items-center justify-center font-bold rounded">
+                        <img src="/subLogo.png" alt="Logo Icon" className="h-6 w-6" />
                     </div>
-                    {open && <span className="text-xl font-bold text-blue-600">My App</span>}
+                    {open && <img src="/logo.png" alt="Logo" className="h-8 w-auto" />}
                 </div>
             </div >
 

@@ -6,6 +6,7 @@ import AuthAPI from "api/authAPI";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useTranslations } from 'next-intl';
+import { useLoading } from "context/loadingContext";
 
 
 const RegisterPage = () => {
@@ -14,6 +15,7 @@ const RegisterPage = () => {
     const [password, setPassword] = useState('');
     const t = useTranslations('RegisterPage');
     const router = useRouter();
+    const { showLoading, hideLoading } = useLoading();
 
 
     const submitRegister = (e: React.FormEvent) => {
@@ -21,15 +23,23 @@ const RegisterPage = () => {
         const data = {
             'userName': username, 'email': email, 'password': password
         };
-        AuthAPI.register(data)
-            .then(response => {
-                localStorage.setItem('gmail', email);
-                router.push('/verify?from=register');
-            })
-            .catch(error => {
-                // Handle registration error
-                toast.error("Registration failed. Please try again.");
-            });
+        showLoading();
+        try {
+            AuthAPI.register(data)
+                .then(response => {
+                    localStorage.setItem('gmail', email);
+                    router.push('/verify?from=register');
+                })
+                .catch(error => {
+                    // Handle registration error
+                    toast.error("Registration failed. Please try again.");
+                });
+        } catch (error) {
+            toast.error("An error occurred. Please try again.");
+        } finally {
+            hideLoading();
+        }
+
     };
 
     return (

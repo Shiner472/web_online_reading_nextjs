@@ -80,7 +80,7 @@ const SidebarAdmin = ({ open }: { open: boolean }) => {
                     text="Settings"
                     open={open}
                     href="/admin/settings"
-                    active={activeItem === "/settings"}
+                    active={activeItem === "/admin/settings"}
                 />
 
                 <p
