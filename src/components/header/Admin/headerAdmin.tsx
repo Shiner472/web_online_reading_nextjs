@@ -1,6 +1,9 @@
+import AuthAPI from "api/authAPI";
+import SettingsAPI from "api/settingsAPI";
 import { useI18n } from "i18n/i18Provider";
-import { Edit, Globe, HelpCircle, LogOut, Menu, Search, Settings, User } from "lucide-react";
-import { useState } from "react";
+import { Bell, Edit, Globe, HelpCircle, LogOut, Menu, Search, Settings, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const ItemDropdown = ({ icon, href, text }: { icon: React.ReactNode; href: string; text: string }) => {
     return (
@@ -15,11 +18,20 @@ const ItemDropdown = ({ icon, href, text }: { icon: React.ReactNode; href: strin
     );
 }
 
+const notifications = [
+    { id: 1, message: "Bạn có lịch hẹn mới từ bác sĩ A" },
+    { id: 2, message: "Hệ thống sẽ bảo trì vào tối nay" },
+    { id: 3, message: "Kết quả xét nghiệm của bạn đã sẵn sàng" },
+];
 
 const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) => {
     const [openDropdown, setOpenDropdown] = useState(false);
+    const [openNotifications, setOpenNotifications] = useState(false);
     const { locale, changeLanguage } = useI18n();
     const [lang, setLang] = useState(locale || "vi");
+    const [logoPreview, setLogoPreview] = useState<any>();
+    const [imageUser, setImageUser] = useState<string>();
+    const token = localStorage.getItem("token");
 
     const toggleLang = () => {
         const newLang = lang === "en" ? "vi" : "en";
@@ -27,6 +39,31 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
         localStorage.setItem("lang", newLang);
         changeLanguage(newLang);
     }
+
+
+    useEffect(() => {
+        if (!token) return;
+        AuthAPI.getMe({ token }).then((response) => {
+
+            setImageUser(response.data.avatar || "https://api.dicebear.com/6.x/initials/svg?seed=JD");
+
+        });
+    }, [token]);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await SettingsAPI.getSettings().then((res) => res.data);
+                if (res) {
+                    setLogoPreview(res || null);
+                }
+            } catch (error) {
+                toast.error("❌ Có lỗi xảy ra khi tải cài đặt!");
+            }
+        };
+
+        fetchSettings();
+    }, []);
 
     return (
         < header className="relative bg-white shadow-md px-4 py-3 flex items-center" >
@@ -38,9 +75,9 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
             >
                 <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 flex items-center justify-center font-bold rounded">
-                        <img src="/subLogo.png" alt="Logo Icon" className="h-6 w-6" />
+                        <img src={logoPreview?.iconLogo} alt="Logo Icon" className="h-6 w-6" />
                     </div>
-                    {open && <img src="/logo.png" alt="Logo" className="h-8 w-auto" />}
+                    {open && <img src={logoPreview?.logo} alt="Logo" className="h-8 w-auto" />}
                 </div>
             </div >
 
@@ -73,10 +110,45 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
             </div >
 
             {/* Right: icons */}
-            {/* Right: icons */}
             <div className="flex items-center space-x-4">
-                <span className="w-6 h-6 bg-gray-300 rounded-full"></span>
-                <span className="w-6 h-6 bg-gray-300 rounded-full"></span>
+                <div className="relative">
+                    {/* Nút thông báo */}
+                    <button
+                        onClick={() => setOpenNotifications(!openNotifications)}
+                        className="relative w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200 transition"
+                    >
+                        <Bell className="w-6 h-6 text-gray-600" />
+                        {/* Số lượng thông báo */}
+                        {notifications.length > 0 && (
+                            <span className="absolute top-1 right-1 bg-red-500 text-white text-xs font-semibold rounded-full w-4 h-4 flex items-center justify-center">
+                                {notifications.length}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Danh sách thông báo */}
+                    {openNotifications && (
+                        <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg border border-gray-100 overflow-hidden z-50">
+                            <div className="p-3 border-b font-semibold text-gray-700">Thông báo</div>
+                            <div className="max-h-60 overflow-y-auto">
+                                {notifications.length > 0 ? (
+                                    notifications.map((n) => (
+                                        <div
+                                            key={n.id}
+                                            className="px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 cursor-pointer"
+                                        >
+                                            {n.message}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                                        Không có thông báo nào
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 {/* User + Dropdown */}
                 <div className="relative">
@@ -84,7 +156,11 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
                         onClick={() => setOpenDropdown(!openDropdown)}
                         className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center"
                     >
-                        <User className="w-5 h-5 text-white" />
+                        <img
+                            src={imageUser}
+                            alt="User Avatar"
+                            className="w-8 h-8 rounded-full object-cover"
+                        />
                     </button>
 
                     {openDropdown && (

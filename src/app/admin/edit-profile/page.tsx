@@ -3,6 +3,7 @@
 import AuthAPI from "api/authAPI";
 import InputField from "components/inputField/inputField";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 
 const EditProfilePage = () => {
     const [activeTab, setActiveTab] = useState<"username" | "password" | "avatar">("username");
@@ -86,7 +87,7 @@ const EditProfilePage = () => {
                 alert("Cập nhật ảnh đại diện thành công!");
             }
         } catch (error) {
-            console.error("Error update avatar:", error);
+            toast.error("Lỗi cập nhật ảnh đại diện:");
         }
     };
 
@@ -124,7 +125,7 @@ const EditProfilePage = () => {
                             required
                         />
                         <div className="flex justify-center">
-                            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            <button type="submit" className="px-4 py-2 bg-blue-500 !text-white rounded hover:bg-blue-600">
                                 Lưu
                             </button>
                         </div>
@@ -161,7 +162,7 @@ const EditProfilePage = () => {
                             required
                         />
                         <div className="flex justify-center">
-                            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            <button type="submit" className="px-4 py-2 bg-blue-500 !text-white rounded hover:bg-blue-600">
                                 Lưu
                             </button>
                         </div>
@@ -193,7 +194,7 @@ const EditProfilePage = () => {
                         <div className="flex justify-center">
                             <button
                                 type="submit"
-                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                className="px-4 py-2 bg-blue-500 !text-white rounded hover:bg-blue-600"
                             >
                                 Lưu
                             </button>

@@ -33,9 +33,14 @@ class AuthAPI {
         return axiosClient.post(url, data);
     }
 
+    static async createUser(data: any) {
+        const url = '/auth/create-user';
+        return axiosPrivate.post(url, data);
+    }
+
     static async updateProfile(id: string, data: any) {
         const url = `/auth/updateProfile/${id}`;
-        return axiosClient.put(url, data);
+        return axiosPrivate.put(url, data);
     }
 
     static async permissionRole (id:string, data:any){

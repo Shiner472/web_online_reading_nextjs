@@ -32,7 +32,7 @@ export const axiosPrivate = axios.create({
 
 axiosPrivate.interceptors.request.use(
     (config) => {
-        const accessToken = localStorage.getItem('accessToken');
+        const accessToken = localStorage.getItem('token');
         if (accessToken) {
             config.headers['Authorization'] = `Bearer ${accessToken}`;
         }
