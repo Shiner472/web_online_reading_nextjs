@@ -1,5 +1,5 @@
 export const roleAccess: Record<string, string[]> = {
-  "/editor": ["editor", "chief-editor", "admin"],
-  "/chief-editor": ["chief-editor", "admin"],
+  "/editor": ["editor", "chief_editor", "admin"],
+  "/chief-editor": ["chief_editor", "admin"],
   "/admin": ["admin"],
 };

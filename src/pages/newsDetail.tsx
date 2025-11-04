@@ -15,36 +15,6 @@ type Reaction = { type: string; label: string; icon: string; color: string };
 type Reply = { _id: string; author: string; content: string; reactions: Reaction | null; replies: Reply[] };
 type Comment = { _id: string; author: string; content: string; reactions: Reaction | null; replies: Reply[], createdAt?: string };
 
-const relatedPosts = [
-    {
-        id: 2,
-        title: "Bài viết liên quan 1",
-        excerpt: "Đây là bài viết liên quan 1",
-        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-        publishAt: "11/8/2025 19:00 "
-    },
-    {
-        id: 3,
-        title: "Bài viết liên quan 2",
-        excerpt: "Đây là bài viết liên quan 2",
-        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-        publishAt: "11/8/2025 19:00 "
-    },
-    {
-        id: 4,
-        title: "Bài viết liên quan 3",
-        excerpt: "Đây là bài viết liên quan 3",
-        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-        publishAt: "11/8/2025 19:00 "
-    },
-    {
-        id: 5,
-        title: "Bài viết liên quan 4",
-        excerpt: "Đây là bài viết liên quan 4",
-        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-        publishAt: "11/8/2025 19:00 "
-    }
-];
 
 const reactionsList: Reaction[] = [
     { type: "like", label: "Thích", icon: "👍", color: "text-blue-600" },
@@ -122,6 +92,7 @@ const NewsDetail = () => {
         const fetchNews = async () => {
             try {
                 const response = await NewsAPI.GetNewsBySlug(slug);
+                console.log("Fetched news detail:", response.data);
                 setNews(response.data);
             } catch (error) {
                 toast.error("Error fetching news:");
@@ -337,7 +308,7 @@ const NewsDetail = () => {
                         <div className="flex justify-between items-center">
                             <p className="text-base text-gray-400">
                                 <a href="#" className="hover:text-blue-600">
-                                    {news?.category.name.vi}
+                                    {news?.category?.name?.vi}
                                 </a>
                             </p>
                             <p className="text-sm text-gray-500">{dayjs(news?.createdAt).format("DD/MM/YYYY HH:mm [GMT]Z")}</p>
@@ -352,7 +323,7 @@ const NewsDetail = () => {
                             />
                         </div>
                         <div className="text-xl !text-black mt-4 font-bold flex justify-end">
-                            {news?.author.userName}
+                            {news?.author?.userName}
                         </div>
                     </div>
                 </div>

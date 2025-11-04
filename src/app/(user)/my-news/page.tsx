@@ -27,7 +27,7 @@ type Article = {
     title: string;
     category: Category | string;
     featuredImage?: string;
-    status: "draft" | "pending" | "published";
+    status: "draft" | "pending" | "published" | "rejected";
     summary?: string;
     content?: string;
 };
@@ -59,7 +59,7 @@ const MyNewsPage = () => {
 
 
     const sortedArticles = [...articleList].sort((a, b) => {
-        const order = { draft: 0, pending: 1, published: 2 };
+        const order = { draft: 0, pending: 1, published: 2, rejected: 3 };
         return order[a.status] - order[b.status];
     });
 
@@ -184,6 +184,11 @@ const MyNewsPage = () => {
                                         {a.status === "published" && (
                                             <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700">
                                                 ✅ Đã xuất bản
+                                            </span>
+                                        )}
+                                        {a.status === "rejected" && (
+                                            <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                                                ⛔ Bị từ chối
                                             </span>
                                         )}
                                     </div>

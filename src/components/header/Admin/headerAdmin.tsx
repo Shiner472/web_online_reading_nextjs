@@ -65,6 +65,11 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
         fetchSettings();
     }, []);
 
+    const handleLogout = async () => {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+    }
+
     return (
         < header className="relative bg-white shadow-md px-4 py-3 flex items-center" >
             {/* Left: logo */}
@@ -197,7 +202,7 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
                             </ul>
                             <div className="border-t">
                                 <a
-                                    href="#"
+                                    onClick={handleLogout}
                                     className="flex items-center px-4 py-2 !text-red-500 hover:bg-gray-100"
                                 >
                                     <LogOut className="w-4 h-4 mr-2" /> Sign Out

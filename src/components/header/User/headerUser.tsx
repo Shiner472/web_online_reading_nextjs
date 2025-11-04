@@ -327,6 +327,7 @@ const HeaderUser = () => {
                                             onClick={() => {
                                                 localStorage.removeItem('token');
                                                 setUserInfo(null);
+                                                window.location.href = '/';
                                             }}
                                             className="flex items-center gap-3 w-full text-left px-4 py-2 mt-1 text-red-500 font-semibold hover:bg-red-500 hover:text-white transition-colors"
                                         >
