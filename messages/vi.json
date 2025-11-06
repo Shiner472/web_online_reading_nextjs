@@ -12,7 +12,11 @@
         "networkError": "Lỗi kết nối mạng, vui lòng thử lại sau",
         "serverError": "Lỗi máy chủ, vui lòng thử lại sau",
         "unexpectedError": "Đã xảy ra lỗi, vui lòng thử lại sau",
-        "loading": "Đang tải..."
+        "loading": "Đang tải...",
+        "loginWithPasskey": "Đăng nhập bằng Passkey",
+        "passkeyAuthentication": "Xác thực Passkey",
+        "registerWithPasskey": "Đăng ký bằng Passkey",
+        "cancel": "Hủy"
     },
     "RegisterPage": {
         "title": "Đăng Ký",

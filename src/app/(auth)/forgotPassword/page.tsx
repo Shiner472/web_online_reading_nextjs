@@ -48,7 +48,7 @@ const ForgotPasswordPage = () => {
                     </button>
                 </form>
                 <p className='mt-4 text-sm text-center'>
-                    {t('haveAccount')} <a href='/login' className='text-blue-500 hover:underline'>{t('linkLogin')}</a>
+                    {t('haveAccount')} <a href='/login' className='!text-blue-500 hover:underline'>{t('linkLogin')}</a>
                 </p>
             </div>
 

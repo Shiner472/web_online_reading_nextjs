@@ -58,6 +58,27 @@ class AuthAPI {
         return axiosPrivate.put(url,data);
     }
 
+
+    static async registerPasskeyOptions(data: any) {
+        const url = '/auth/register/options';
+        return axiosClient.get(url, { params: data });
+    }
+
+    static async verifyPasskeyRegistration(data: any) {
+        const url = '/auth/register/verify';
+        return axiosClient.post(url, data);
+    }
+
+    static async loginPasskeyOptions(data: any) {
+        const url = '/auth/login/options';
+        return axiosClient.get(url, { params: data });
+    }
+
+    static async verifyPasskeyLogin(data: any) {
+        const url = '/auth/login/verify';
+        return axiosClient.post(url, data);
+    }
+
 }
 
 export default AuthAPI;

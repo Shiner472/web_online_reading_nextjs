@@ -12,7 +12,11 @@
         "networkError": "Network error, please try again later",
         "serverError": "Server error, please try again later",
         "unexpectedError": "An unexpected error occurred, please try again later",
-        "loading": "Loading..."
+        "loading": "Loading...",
+        "loginWithPasskey": "Login with Passkey",
+        "passkeyAuthentication": "Passkey Authentication",
+        "registerWithPasskey": "Register with Passkey",
+        "cancel": "Cancel"
     },
     "RegisterPage": {
         "title": "Register",
@@ -23,7 +27,8 @@
         "submit": "Register",
         "haveAccount": "Already have an account?",
         "login": "Login",
-        "fillAllFields": "Please fill in all fields"
+        "fillAllFields": "Please fill in all fields",
+        "registerWithPasskey": "Register with Passkey"
     },
     "VerifyPage": {
         "title": "Verify Account",
