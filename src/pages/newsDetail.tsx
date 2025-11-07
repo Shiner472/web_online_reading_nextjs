@@ -366,59 +366,64 @@ const NewsDetail = () => {
             {/* Bình luận */}
             <div className="post-detail-middle w-full max-w-3xl mt-10 mx-auto px-4 translate-x-[-20%]">
                 <h2 className="text-2xl font-bold mb-4">Ý kiến</h2>
-                <div className="flex items-start space-x-3">
-                    <img
-                        src="https://images.unsplash.com/photo-1506744038136-46273834b3fb"
-                        alt="User avatar"
-                        className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div className="flex-1">
-                        <textarea
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                            placeholder="Viết bình luận..."
-                            rows={4}
-                            className="w-full border border-gray-400 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
-                        ></textarea>
-                        <div className="flex items-center justify-end mt-2" >
-                            <div className="flex space-x-3 text-gray-500 mr-2">
-                                <button
-                                    className="hover:text-blue-500"
-                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                >
-                                    <FontAwesomeIcon icon={faFaceSmile} />
-                                </button>
+                {token ? (
+                    <div className="flex items-start space-x-3">
+                        <img
+                            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb"
+                            alt="User avatar"
+                            className="w-12 h-12 rounded-full object-cover"
+                        />
+                        <div className="flex-1">
+                            <textarea
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="Viết bình luận..."
+                                rows={4}
+                                className="w-full border border-gray-400 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                            ></textarea>
+                            <div className="flex items-center justify-end mt-2" >
+                                <div className="flex space-x-3 text-gray-500 mr-2">
+                                    <button
+                                        className="hover:text-blue-500"
+                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                    >
+                                        <FontAwesomeIcon icon={faFaceSmile} />
+                                    </button>
 
 
-                            </div>
-                            {showEmojiPicker && (
-                                <div className="absolute top-30 right-0 flex space-x-2 bg-white border border-gray-200 rounded-xl shadow-lg p-2 z-10">
-                                    {reactionsList.map((r) => (
-                                        <button
-                                            key={r.type}
-                                            onClick={() => {
-                                                setComment((prev) => prev + " " + r.icon); // 👉 chèn emoji vào ô nhập
-                                            }}
-                                            className={`text-xl hover:scale-125 transition-transform ${r.color}`}
-                                            title={r.label}
-                                        >
-                                            {r.icon}
-                                        </button>
-                                    ))}
                                 </div>
-                            )}
-                            <button
-                                onClick={() => {
-                                    handleCommentSubmit();
-                                    setComment("");
-                                }}
-                                className="flex items-center bg-blue-600 !text-white px-4 py-1.5 rounded-lg hover:bg-blue-700 transition-colors "
-                            >
-                                <FontAwesomeIcon icon={faPaperPlane} className="mr-1" /> Gửi
-                            </button>
+                                {showEmojiPicker && (
+                                    <div className="absolute top-30 right-0 flex space-x-2 bg-white border border-gray-200 rounded-xl shadow-lg p-2 z-10">
+                                        {reactionsList.map((r) => (
+                                            <button
+                                                key={r.type}
+                                                onClick={() => {
+                                                    setComment((prev) => prev + " " + r.icon); // 👉 chèn emoji vào ô nhập
+                                                }}
+                                                className={`text-xl hover:scale-125 transition-transform ${r.color}`}
+                                                title={r.label}
+                                            >
+                                                {r.icon}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                                <button
+                                    onClick={() => {
+                                        handleCommentSubmit();
+                                        setComment("");
+                                    }}
+                                    className="flex items-center bg-blue-600 !text-white px-4 py-1.5 rounded-lg hover:bg-blue-700 transition-colors "
+                                >
+                                    <FontAwesomeIcon icon={faPaperPlane} className="mr-1" /> Gửi
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+
+                ) : (<><p className="text-gray-500">Bạn cần đăng nhập để bình luận</p></>)}
+
+
 
                 {/* Danh sách bình luận */}
                 <CommentList
@@ -443,7 +448,7 @@ const NewsDetail = () => {
             <div className="related-posts max-w-4xl mx-auto">
                 <h2 className="text-2xl font-bold mb-4">Bạn có thể quan tâm</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {relatedPosts.map((post) => (
+                    {relatedPosts.length > 0 ? (relatedPosts.map((post) => (
                         <div key={post._id} className="border border-gray-300 rounded-lg overflow-hidden">
                             <img src={post.featuredImage} alt={post.title} className="w-full h-48 object-cover" />
                             <div className="p-4">
@@ -454,7 +459,9 @@ const NewsDetail = () => {
                                 <p className="text-xs text-gray-500">{post.createdAt}</p>
                             </div>
                         </div>
-                    ))}
+                    ))) : (
+                        <p className="text-gray-500">Không có bài viết liên quan</p>
+                    )}
                 </div>
             </div>
 

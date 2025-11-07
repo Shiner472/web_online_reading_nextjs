@@ -16,7 +16,8 @@ import {
     Folder,
     List,
     ShieldCheck,
-    Settings
+    Settings,
+    BrainCircuit
 } from "lucide-react";
 
 type MenuItemProps = {
@@ -102,6 +103,14 @@ const SidebarAdmin = ({ open }: { open: boolean }) => {
                     open={open}
                     href="/admin/roles"
                     active={activeItem === "/admin/roles"}
+                />
+
+                <MenuItem
+                    icon={<BrainCircuit />}
+                    text="Huấn luyện hình ảnh AI"
+                    open={open}
+                    href="/admin/ai-training"
+                    active={activeItem === "/admin/ai-training"}
                 />
             </nav>
         </div>
