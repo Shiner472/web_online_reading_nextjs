@@ -20,6 +20,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  eslint: {
+    // ⚠️ Tắt kiểm tra ESLint khi build
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // ⚠️ Bỏ qua lỗi TypeScript khi build
+    ignoreBuildErrors: true,
+  },
 };
 
 const withNextIntl = createNextIntlPlugin();

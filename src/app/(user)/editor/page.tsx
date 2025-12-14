@@ -7,6 +7,7 @@ import AuthAPI from "api/authAPI";
 import NotificationAPI from "api/notificationAPI";
 import { toast } from "react-toastify";
 import ArticleDetailModal from "../../../components/editor/ArticleDetailModal";
+import { useRouter, useSearchParams } from "next/navigation";
 
 
 type Author = {
@@ -29,6 +30,11 @@ type Article = {
 export default function EditorPage() {
   const [articleList, setArticleList] = useState<Article[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const searchParams = useSearchParams();
+  const rawPage = searchParams?.get("page");
+  const page = rawPage ? Number(rawPage) : 1;
+  const [totalPages, setTotalPages] = useState(1);
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState<any>(null);
   const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
@@ -40,13 +46,7 @@ export default function EditorPage() {
     return 0;
   });
 
-  // Pagination setup
-  const itemsPerPage = 7;
-  const totalPages = Math.ceil(sortedArticles.length / itemsPerPage);
-  const paginatedArticles = sortedArticles.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+
 
 
   useEffect(() => {
@@ -56,10 +56,13 @@ export default function EditorPage() {
   }, [token]);
 
   useEffect(() => {
-    NewsAPI.GetAllNews()
-      .then((res) => setArticleList(res.data))
+    NewsAPI.GetAllNews(page, 10)
+      .then((res) => {
+        setArticleList(res.data.items)
+        setTotalPages(res.data.totalPages)
+      })
       .catch(() => toast.error("Không thể tải danh sách bài viết"));
-  }, []);
+  }, [page]);
 
 
   const handleApprove = async (a: Article) => {
@@ -138,6 +141,10 @@ export default function EditorPage() {
     }
   };
 
+  const changePage = (newPage: number) => {
+    newPage === 1 ? router.push(`/editor`) : router.push(`/editor?page=${newPage}`);
+  };
+
   // =====================
   // 🔹 Render
   // =====================
@@ -150,7 +157,7 @@ export default function EditorPage() {
         <div className="bg-white p-6 rounded-2xl shadow">
           <h2 className="text-lg font-semibold mb-4">Danh sách bài viết</h2>
           <div className="divide-y">
-            {paginatedArticles.map((a) => (
+            {articleList.map((a) => (
               <div
                 key={a._id}
                 className="flex items-center justify-between py-3 px-2 hover:bg-slate-50 transition rounded-lg"
@@ -206,8 +213,8 @@ export default function EditorPage() {
                   <button
                     onClick={() => handleHighlight(a)}
                     className={`px-3 py-1 rounded-md border text-sm flex items-center gap-1 ${a.isFeatured
-                        ? "bg-amber-500 border-amber-600 text-white hover:bg-amber-600"
-                        : "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100"
+                      ? "bg-amber-500 border-amber-600 text-white hover:bg-amber-600"
+                      : "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100"
                       }`}
                   >
                     <Star className="w-4 h-4" />
@@ -230,19 +237,19 @@ export default function EditorPage() {
           {/* Pagination */}
           <div className="flex justify-between items-center mt-4 text-sm">
             <span>
-              Trang {currentPage}/{totalPages}
+              Trang {page}/{totalPages}
             </span>
             <div className="flex gap-2">
               <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                onClick={() => changePage(page - 1)}
+                disabled={page === 1}
                 className="px-2 py-1 rounded-md border disabled:opacity-40"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
+                onClick={() => changePage(page + 1)}
+                disabled={page === totalPages}
                 className="px-2 py-1 rounded-md border disabled:opacity-40"
               >
                 <ChevronRight className="w-4 h-4" />

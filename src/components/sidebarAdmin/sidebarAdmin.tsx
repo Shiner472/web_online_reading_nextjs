@@ -6,19 +6,12 @@ import { usePathname } from "next/navigation";
 import {
     Home,
     User,
-    BarChart3,
-    Activity,
-    ShoppingCart,
-    Calendar,
-    MessageCircle,
-    CheckSquare,
-    Mail,
-    Folder,
     List,
     ShieldCheck,
     Settings,
     BrainCircuit
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type MenuItemProps = {
     icon: React.ReactNode;
@@ -44,6 +37,7 @@ const MenuItem = ({ icon, text, open, href, active }: MenuItemProps) => (
 const SidebarAdmin = ({ open }: { open: boolean }) => {
     const pathname = usePathname();
     const [activeItem, setActiveItem] = useState<string>("");
+    const t = useTranslations("AdminPage");
 
     useEffect(() => {
         setActiveItem(pathname ?? ""); // đồng bộ với URL khi load hoặc chuyển trang
@@ -59,18 +53,18 @@ const SidebarAdmin = ({ open }: { open: boolean }) => {
                     className={`text-gray-500 text-xs font-semibold mt-2 mb-1 px-2 ${!open && "hidden"
                         }`}
                 >
-                    DASHBOARD
+                    {t("dashboard")}
                 </p>
                 <MenuItem
                     icon={<Home />}
-                    text="Dashboard"
+                    text={t("dashboardPage")}
                     open={open}
                     href="/admin/dashboard"
                     active={activeItem === "/admin/dashboard"}
                 />
                 <MenuItem
                     icon={<User />}
-                    text="Account"
+                    text={t("account")}
                     open={open}
                     href="/admin/view-profile"
                     active={activeItem === "/admin/view-profile"}
@@ -78,7 +72,7 @@ const SidebarAdmin = ({ open }: { open: boolean }) => {
 
                 <MenuItem
                     icon={<Settings />}
-                    text="Settings"
+                    text={t("settingsPage")}
                     open={open}
                     href="/admin/settings"
                     active={activeItem === "/admin/settings"}
@@ -88,18 +82,18 @@ const SidebarAdmin = ({ open }: { open: boolean }) => {
                     className={`text-gray-500 text-xs font-semibold mt-2 mb-1 px-2 ${!open && "hidden"
                         }`}
                 >
-                    QUẢN LÝ
+                    {t("manage")}
                 </p>
                 <MenuItem
                     icon={<List />}
-                    text="Quản lý danh mục"
+                    text={t("manageCategoryPage")}
                     open={open}
                     href="/admin/manage-category"
                     active={activeItem === "/admin/manage-category"}
                 />
                 <MenuItem
                     icon={<ShieldCheck />}
-                    text="Cấp quyền truy cập"
+                    text={t("permissionPage")}
                     open={open}
                     href="/admin/roles"
                     active={activeItem === "/admin/roles"}
@@ -107,7 +101,7 @@ const SidebarAdmin = ({ open }: { open: boolean }) => {
 
                 <MenuItem
                     icon={<BrainCircuit />}
-                    text="Huấn luyện hình ảnh AI"
+                    text={t("AI-trainingPage")}
                     open={open}
                     href="/admin/ai-training"
                     active={activeItem === "/admin/ai-training"}

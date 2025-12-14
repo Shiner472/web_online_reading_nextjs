@@ -13,7 +13,7 @@ import { useLoading } from "context/loadingContext";
 const ReactQuill = dynamic(
     async () => {
         const { default: RQ } = await import("react-quill-new");
-        return forwardRef<any, any>((props, ref) => <RQ {...props} ref={ref} />);
+        return forwardRef<any, any>((props, ref) => <RQ {...props} ref={ref} />)
     },
     { ssr: false }
 );
@@ -289,7 +289,9 @@ export default function PostForm({ mode, initialData, onSuccess }: PostFormProps
                         theme="snow"
                         value={editorHtml}
                         onChange={setEditorHtml}
-                        modules={{ toolbar: { container: toolbarOptions, handlers: { image: imageHandler, video: videoHandler } } }}
+                        modules={{
+                            toolbar: { container: toolbarOptions, handlers: { image: imageHandler, video: videoHandler } },
+                        }}
                     />
                 </div>
 

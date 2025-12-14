@@ -16,7 +16,7 @@ interface UserInfo {
     _id: string,
     userName: string;
     avatar: string;
-    role?: "user" | "editor" | "chief_editor";
+    role?: "user" | "editor" | "chief_editor" | "admin";
 }
 
 interface Category {
@@ -139,7 +139,7 @@ const HeaderUser = () => {
                 )
             );
         } catch (error) {
-            console.error("Lỗi khi đánh dấu đã đọc:", error);
+            toast.error("Lỗi khi đánh dấu đã đọc:");
         }
 
     }
@@ -235,33 +235,59 @@ const HeaderUser = () => {
                                         </div>
 
                                         {notifications.length === 0 ? (
-                                            <div className="px-4 py-3 text-gray-500 text-sm text-center">
-                                                Không có thông báo mới
+                                            <div className="px-4 py-6 text-gray-500 text-sm text-center">
+                                                Không có thông báo nào
                                             </div>
                                         ) : (
-                                            <ul className="max-h-80 overflow-y-auto">
-                                                {notifications.map((noti, idx) => (
-                                                    <a href={`http://localhost:3000/${noti.link}`} key={idx}>
-                                                        <li
-                                                            onClick={() => handleMarkReaded(noti._id)}
-                                                            className={`flex items-start gap-3 bg-white rounded-xl shadow-sm px-4 py-3 cursor-pointer transition-all 
-        ${noti.isReaded ? 'opacity-70' : 'hover:bg-gray-50'}
-      `}
-                                                        >
+                                            <ul className="max-h-96 overflow-y-auto divide-y">
+                                                {notifications.map((noti) => (
+                                                    <li
+                                                        key={noti._id}
+                                                        onClick={() => handleMarkReaded(noti._id)}
+                                                        className={`group flex items-start gap-3 px-4 py-3 cursor-pointer transition-all ${noti.isReaded
+                                                            ? "bg-white hover:bg-gray-50 opacity-80"
+                                                            : "bg-blue-50 hover:bg-blue-100/60"
+                                                            }`}
+                                                    >
+                                                        {/* Thumbnail */}
+                                                        <div className="relative flex-shrink-0">
                                                             <img
-                                                                src={noti.thumbnail || '/default-thumbnail.jpg'}
+                                                                src={noti.thumbnail || "/default-thumbnail.jpg"}
                                                                 alt="thumb"
-                                                                className="w-11 h-11 rounded-lg object-cover flex-shrink-0"
+                                                                className="w-12 h-12 rounded-lg object-cover shadow-sm"
                                                             />
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="font-semibold text-sm line-clamp-2">{noti.title}</p>
-                                                                <p className="text-xs text-gray-400 mt-1">{formatDate(noti.createdAt)}</p>
-                                                            </div>
-                                                        </li>
-                                                    </a>
+
+                                                            {/* Dot trạng thái */}
+                                                            {!noti.isReaded && (
+                                                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full shadow-sm"></span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Nội dung */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <a
+                                                                href={`http://localhost:3000/${noti.link}`}
+                                                                className="block"
+                                                            >
+                                                                <p
+                                                                    className={`text-sm line-clamp-2 transition ${noti.isReaded
+                                                                        ? "text-gray-700"
+                                                                        : "font-semibold text-gray-900"
+                                                                        }`}
+                                                                >
+                                                                    {noti.title}
+                                                                </p>
+                                                            </a>
+
+                                                            <p className="text-xs text-gray-400 mt-1">
+                                                                {formatDate(noti.createdAt)}
+                                                            </p>
+                                                        </div>
+                                                    </li>
                                                 ))}
                                             </ul>
                                         )}
+
                                     </div>
                                 )}
                             </div>
@@ -309,7 +335,7 @@ const HeaderUser = () => {
                                                 className="flex items-center gap-3 px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 hover:text-indigo-600 transition-colors"
                                             >
                                                 <FontAwesomeIcon icon={faCog} className="text-lg" />
-                                                <span>Editor Panel</span>
+                                                <span>Trang Editor</span>
                                             </a>
                                         )}
 
@@ -319,7 +345,17 @@ const HeaderUser = () => {
                                                 className="flex items-center gap-3 px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 hover:text-indigo-600 transition-colors"
                                             >
                                                 <FontAwesomeIcon icon={faCog} className="text-lg" />
-                                                <span>Chief Editor Panel</span>
+                                                <span>Trang Chief Editor</span>
+                                            </a>
+                                        )}
+
+                                        {userInfo.role === "admin" && (
+                                            <a
+                                                href="/admin"
+                                                className="flex items-center gap-3 px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 hover:text-indigo-600 transition-colors"
+                                            >
+                                                <FontAwesomeIcon icon={faCog} className="text-lg" />
+                                                <span>Trang admin</span>
                                             </a>
                                         )}
 

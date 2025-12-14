@@ -1,3 +1,4 @@
+'use client';
 import { faFaceSmile, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AuthAPI from "api/authAPI";
@@ -38,7 +39,7 @@ const NewsDetail = () => {
     const [comment, setComment] = useState("");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const emojiRef = useRef<HTMLDivElement | null>(null);
-    const token = localStorage.getItem("token");
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     const [topViewedNews, setTopViewedNews] = useState<any[]>([]);
     const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
     const [listLastestNews, setListLastestNews] = useState<any[]>([]);

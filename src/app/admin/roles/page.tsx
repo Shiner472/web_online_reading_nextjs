@@ -171,7 +171,7 @@ const RolesPage = () => {
                                                     handleBanToggle(user._id, user.isActive)
                                                 }
                                                 disabled={banning === user._id}
-                                                className={`inline-flex items-center gap-1 px-3 py-1 rounded text-white transition-colors ${banning === user._id
+                                                className={`inline-flex items-center gap-1 px-3 py-1 rounded !text-white transition-colors ${banning === user._id
                                                         ? "bg-gray-400 cursor-not-allowed"
                                                         : user.isActive
                                                             ? "bg-red-600 hover:bg-red-700"

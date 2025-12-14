@@ -9,7 +9,7 @@ import { axiosClient, axiosPrivate } from "./axiosClient";
 class SettingsAPI {
 
     static async getSettings() {
-        const url = '/settings/';
+        const url = '/settings';
         return axiosPrivate.get(url);
     }
 
@@ -19,7 +19,7 @@ class SettingsAPI {
     }
 
     static async updateSettings(data: any) {
-        const url = '/settings/update/';
+        const url = '/settings/update';
         return axiosPrivate.put(url, data);
     }
 }

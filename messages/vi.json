@@ -54,6 +54,18 @@
     },
 
 
+    "AdminPage": {
+        "dashboard":"BẢNG ĐIỀU KHIỂN",
+        "manage":"QUẢN LÝ",
+        "dashboardPage":"Trang điều khiển",
+        "account":"Tài khoản",
+        "settingsPage":"Thiết lập cài đặt",
+        "manageCategoryPage":"Quản lý danh mục",
+        "permissionPage":"Cấp quyền truy cập",
+        "AI-trainingPage":"Huấn luyện AI"
+    },
+
+
 
 
     "ManageCategoryPage": {

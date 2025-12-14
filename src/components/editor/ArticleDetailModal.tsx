@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   X,
   Image as ImageIcon,
@@ -12,6 +12,8 @@ import {
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { ImageScanAPI } from "api/imageScanAPI";
+import AuthAPI from "api/authAPI";
+import NotificationAPI from "api/notificationAPI";
 
 function extractImageUrls(html: string): string[] {
   if (!html) return [];
@@ -52,12 +54,108 @@ export default function ArticleDetailModal({ article, onClose }: Props) {
       if (hasSensitive) toast.warning("⚠️ Phát hiện hình ảnh vi phạm!");
       else toast.success("✅ Không phát hiện hình ảnh vi phạm.");
     } catch (err) {
-      console.error(err);
       toast.error("❌ Lỗi khi quét hình ảnh.");
     } finally {
       setScanning(false);
     }
   };
+
+
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [selectedImages, setSelectedImages] = useState<{ src: string, label: string }[]>([]);
+  const token = localStorage.getItem("token") || "";
+  const [userId, setUserId] = useState<string>("");
+
+
+  useEffect(() => {
+    if (!token) return;
+    try {
+      AuthAPI.getMe({ token }).then((res) => {
+        setUserId(res.data._id);
+      });
+    } catch (error) {
+      toast.error("❌ Lỗi khi lấy thông tin người dùng.");
+    }
+  }, [token]);
+
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+
+
+    container.innerHTML = article.content || "";
+
+
+    const images = Array.from(container.querySelectorAll("img"));
+
+
+    images.forEach((img) => {
+      img.style.cursor = "pointer";
+      img.classList.add("hover:opacity-80", "transition");
+
+
+      img.addEventListener("click", () => {
+        const src = img.src;
+
+
+        const exists = selectedImages.find((i) => i.src === src);
+        if (!exists) {
+          setSelectedImages((prev) => [...prev, { src, label: "safe" }]);
+        }
+      });
+    });
+
+
+    return () => {
+      images.forEach((img) => {
+        const clone = img.cloneNode(true);
+        img.replaceWith(clone);
+      });
+    };
+  }, [article.content, selectedImages]);
+
+  const handleRemoveImage = (src: string) => {
+    setSelectedImages((prev) => prev.filter((i) => i.src !== src));
+  };
+
+
+  const handleChangeLabel = (src: string, value: string) => {
+    setSelectedImages((prev) => {
+      const exists = prev.find((i) => i.src === src);
+      if (exists) {
+        return prev.map((i) => (i.src === src ? { ...i, label: value } : i));
+      }
+      return [...prev, { src, label: value }];
+    });
+  };
+
+
+  const handleReport = async () => {
+    if (selectedImages.length === 0) {
+      toast.info("⚠️ Vui lòng chọn ít nhất một hình ảnh để báo cáo.");
+      return;
+    }
+    try {
+      ImageScanAPI.requestImageTraning({
+        listImage: selectedImages,
+        senderId: userId,
+        newsId: article._id,
+        roleReceiver: "admin",
+      }).then(async () => {
+        setSelectedImages([]);
+        await NotificationAPI.createNotification({
+          title: "Yêu cầu kiểm tra hình ảnh có vi phạm!",
+          sender: userId,
+          role: ["admin"],
+        })
+        toast.success("🚩 Đã gửi báo cáo hình ảnh đến Admin!");
+      }).catch((error) => {
+        toast.error("❌ Gửi báo cáo hình ảnh thất bại.");
+      });
+    } catch (error) {
+      toast.error("❌ Gửi báo cáo hình ảnh thất bại.");
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-3">
@@ -108,12 +206,70 @@ export default function ArticleDetailModal({ article, onClose }: Props) {
 
           <div className="flex-1 overflow-y-auto p-6">
             <div
+              ref={contentRef}
               className="prose prose-sm max-w-none bg-white rounded-xl shadow-inner p-4 border border-slate-100"
-              dangerouslySetInnerHTML={{
-                __html: article.content || "<i>Chưa có nội dung</i>",
-              }}
             />
+
+            {selectedImages.length > 0 && (
+              <div className="mt-4 p-3 bg-slate-50 rounded-xl border">
+                <div className="font-semibold mb-2">
+                  Ảnh đã chọn ({selectedImages.length}):
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {/* Selected Images UI */}
+                  {selectedImages.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {selectedImages.map((img) => (
+                        <div key={img.src} className="border rounded-xl p-3 bg-white shadow-sm">
+                          <img src={img.src} className="w-full h-32 object-cover rounded-lg" />
+                          {/* Select Label */}
+                          <select
+                            className="mt-3 w-full border rounded-lg px-2 py-1 text-sm"
+                            value={img.label}
+                            onChange={(e) => handleChangeLabel(img.src, e.target.value)}
+                          >
+                            <option value="safe">An toàn</option>
+                            <option value="sensitive">Nhạy cảm</option>
+                          </select>
+
+
+                          <button
+                            onClick={() =>
+                              setSelectedImages((prev) => prev.filter((i) => i.src !== img.src))
+                            }
+                            className="mt-2 w-full bg-red-500 text-white text-sm py-1 rounded-lg hover:bg-red-600"
+                          >
+                            Xóa
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Nút báo cáo */}
+                <div className="mt-4">
+                  <button
+                    onClick={handleReport}
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow"
+                  >
+                    Báo cáo
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <style jsx>{`
+    .selected-image {
+      outline: 3px solid #3b82f6;
+      opacity: 0.8;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+  `}</style>
           </div>
+
 
           <div className="p-5 border-t border-slate-200 flex justify-center">
             <button
@@ -168,8 +324,8 @@ export default function ArticleDetailModal({ article, onClose }: Props) {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.05 }}
                         className={`p-4 rounded-xl shadow-sm flex flex-col gap-3 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${isSensitive
-                            ? "border border-red-300 bg-red-50"
-                            : "border border-green-300 bg-green-50"
+                          ? "border border-red-300 bg-red-50"
+                          : "border border-green-300 bg-green-50"
                           }`}
                       >
                         <div className="flex items-start gap-3">
@@ -178,8 +334,8 @@ export default function ArticleDetailModal({ article, onClose }: Props) {
                               src={item.image_url}
                               alt={`Ảnh ${i}`}
                               className={`w-24 h-24 object-cover rounded-lg border ${isSensitive
-                                  ? "border-red-300"
-                                  : "border-green-300"
+                                ? "border-red-300"
+                                : "border-green-300"
                                 }`}
                             />
                             <div className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow-md">

@@ -54,7 +54,16 @@
         "linkLogin": "Login"
     },
 
-
+    "AdminPage": {
+        "dashboard":"DASHBOARD",
+        "manage":"MANAGE",
+        "dashboardPage":"Dashboard",
+        "account":"Account",
+        "settingsPage":"Settings",
+        "manageCategoryPage":"Manage category",
+        "permissionPage":"Permissions",
+        "AI-trainingPage":"AI-Training"
+    },
 
     "ManageCategoryPage": {
         "title": "Manage Categories",

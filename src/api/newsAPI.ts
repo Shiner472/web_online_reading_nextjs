@@ -20,9 +20,9 @@ class NewsAPI {
         return axiosClient.get(url);
     }
 
-    static async GetNewsByAuthor(authorId: string) {
+    static async GetNewsByAuthor(authorId: string, limit: number, page: number) {
         const url = `/news/author/${authorId}`;
-        return axiosClient.get(url);
+        return axiosClient.get(url, { params: { limit, page } });
     }
 
     static async IncreaseViewCount(slug: string) {
@@ -45,9 +45,9 @@ class NewsAPI {
         return axiosPrivate.delete(url);
     }
 
-    static async GetAllNews() {
+    static async GetAllNews(page:number, limit:number) {
         const url = '/news/all';
-        return axiosClient.get(url);
+        return axiosClient.get(url,{params: {page, limit}});
     }
 
     static async HighlightIsFeatured(id: string, data: any) {

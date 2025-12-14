@@ -3,6 +3,7 @@ import NewsAPI from "api/newsAPI";
 import CategoryAPI from "api/categoryAPI";
 import { useEffect, useState } from "react";
 import { Globe2, Folder, Eye, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 type Author = { _id: string; userName: string };
 type Category = { _id: string; name: { vi: string; en: string } };
@@ -40,14 +41,23 @@ const ChiefEditorDashboardPage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<"global" | "category">("global");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawPage = searchParams?.get("page");
+  const page = rawPage ? Number(rawPage) : 1;
+
+  const [totalPages, setTotalPages] = useState(1);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
-    NewsAPI.GetAllNews()
-      .then((res) => setArticleList(res.data))
+    NewsAPI.GetAllNews(page, 5)
+      .then((res) => {
+        setArticleList(res.data.items)
+        setTotalPages(res.data.totalPages)
+      })
       .catch(console.error);
 
     CategoryAPI.getAllCategories()
@@ -68,21 +78,10 @@ const ChiefEditorDashboardPage = () => {
       .catch(console.error);
   };
 
-  // Filtered list
-  const filteredArticles = articleList.filter((a) => {
-    const matchName = a.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchCategory = selectedCategory
-      ? a.category?._id === selectedCategory
-      : true;
-    return matchName && matchCategory;
-  });
+  const handleChange = (newPage: number) => {
+    newPage === 1 ? router.push(`/chief-editor`) : router.push(`/chief-editor?page=${newPage}`);
+  }
 
-  // Pagination
-  const totalPages = Math.ceil(filteredArticles.length / ITEMS_PER_PAGE);
-  const paginatedArticles = filteredArticles.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
 
   return (
     <div className="bg-slate-50 min-h-screen p-6">
@@ -96,11 +95,10 @@ const ChiefEditorDashboardPage = () => {
               setActiveTab("global");
               setCurrentPage(1);
             }}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              activeTab === "global"
-                ? "bg-blue-600 text-white"
-                : "bg-white border text-slate-700"
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium ${activeTab === "global"
+              ? "bg-blue-600 text-white"
+              : "bg-white border text-slate-700"
+              }`}
           >
             🌍 Theo trang chủ
           </button>
@@ -109,11 +107,10 @@ const ChiefEditorDashboardPage = () => {
               setActiveTab("category");
               setCurrentPage(1);
             }}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              activeTab === "category"
-                ? "bg-emerald-600 text-white"
-                : "bg-white border text-slate-700"
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium ${activeTab === "category"
+              ? "bg-emerald-600 text-white"
+              : "bg-white border text-slate-700"
+              }`}
           >
             📂 Theo thể loại
           </button>
@@ -158,7 +155,7 @@ const ChiefEditorDashboardPage = () => {
 
         {/* Danh sách bài viết */}
         <div className="bg-white shadow rounded-xl divide-y">
-          {paginatedArticles.map((a) => (
+          {articleList.map((a) => (
             <div
               key={a._id}
               className="flex items-start gap-4 p-4 hover:bg-slate-50 transition"
@@ -240,7 +237,7 @@ const ChiefEditorDashboardPage = () => {
             </div>
           ))}
 
-          {paginatedArticles.length === 0 && (
+          {articleList.length === 0 && (
             <div className="p-6 text-center text-slate-500">Không tìm thấy bài viết nào</div>
           )}
         </div>
@@ -248,19 +245,19 @@ const ChiefEditorDashboardPage = () => {
         {/* Pagination controls */}
         <div className="flex justify-between items-center mt-4 text-sm">
           <span>
-            Trang {currentPage}/{totalPages || 1}
+            Trang {page}/{totalPages || 1}
           </span>
           <div className="flex gap-2">
             <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              onClick={() => handleChange(page - 1)}
+              disabled={page === 1}
               className="px-2 py-1 rounded-md border disabled:opacity-40"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => handleChange(page + 1)}
+              disabled={page === totalPages || totalPages === 0}
               className="px-2 py-1 rounded-md border disabled:opacity-40"
             >
               <ChevronRight className="w-4 h-4" />

@@ -1,9 +1,11 @@
 import AuthAPI from "api/authAPI";
+import NotificationAPI from "api/notificationAPI";
 import SettingsAPI from "api/settingsAPI";
 import { useI18n } from "i18n/i18Provider";
 import { Bell, Edit, Globe, HelpCircle, LogOut, Menu, Search, Settings, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { io } from "socket.io-client";
 
 const ItemDropdown = ({ icon, href, text }: { icon: React.ReactNode; href: string; text: string }) => {
     return (
@@ -18,11 +20,8 @@ const ItemDropdown = ({ icon, href, text }: { icon: React.ReactNode; href: strin
     );
 }
 
-const notifications = [
-    { id: 1, message: "Bạn có lịch hẹn mới từ bác sĩ A" },
-    { id: 2, message: "Hệ thống sẽ bảo trì vào tối nay" },
-    { id: 3, message: "Kết quả xét nghiệm của bạn đã sẵn sàng" },
-];
+
+
 
 const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) => {
     const [openDropdown, setOpenDropdown] = useState(false);
@@ -32,7 +31,9 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
     const [logoPreview, setLogoPreview] = useState<any>();
     const [imageUser, setImageUser] = useState<string>();
     const token = localStorage.getItem("token");
-
+    const [user, setUser] = useState<any>();
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [unreadCount, setUnreadCount] = useState<any>(0);
     const toggleLang = () => {
         const newLang = lang === "en" ? "vi" : "en";
         setLang(newLang);
@@ -40,11 +41,27 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
         changeLanguage(newLang);
     }
 
+    useEffect(() => {
+        if (!user?._id) return;
+        const socket = io("http://localhost:4000", {
+            query: { userId: user._id },
+        });
+
+        socket.on("newNotification", (data) => {
+            setNotifications(prev => [data, ...prev]);
+        });
+
+        return () => {
+            socket.off("newNotification");
+            socket.disconnect();
+        };
+    }, [user?._id]);
+
 
     useEffect(() => {
         if (!token) return;
         AuthAPI.getMe({ token }).then((response) => {
-
+            setUser(response.data);
             setImageUser(response.data.avatar || "https://api.dicebear.com/6.x/initials/svg?seed=JD");
 
         });
@@ -65,10 +82,33 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
         fetchSettings();
     }, []);
 
+    useEffect(() => {
+        if (!token || !user?._id) return;
+        try {
+            NotificationAPI.getAllNotification(user._id)
+                .then((response) => {
+                    setNotifications(response.data);
+                    setUnreadCount(response.data.filter((n: any) => !n.isReaded).length)
+                })
+        } catch (error) {
+            toast.error("Lỗi khi tải dữ liệu");
+        }
+    }, [user, token])
+
     const handleLogout = async () => {
         localStorage.removeItem("token");
         window.location.href = "/login";
     }
+
+    const handleMarkedRead = async (id: string) => {
+        await NotificationAPI.markReaded(id);
+        setNotifications((prev) =>
+            prev.map((item) =>
+                item._id === id ? { ...item, isReaded: true } : item
+            )
+        );
+        setUnreadCount((prev: any) => Math.max(prev - 1, 0));
+    };
 
     return (
         < header className="relative bg-white shadow-md px-4 py-3 flex items-center" >
@@ -124,35 +164,67 @@ const HeaderAdmin = ({ open, setOpen }: { open: boolean; setOpen: (open: boolean
                     >
                         <Bell className="w-6 h-6 text-gray-600" />
                         {/* Số lượng thông báo */}
-                        {notifications.length > 0 && (
+                        {unreadCount > 0 && (
                             <span className="absolute top-1 right-1 bg-red-500 text-white text-xs font-semibold rounded-full w-4 h-4 flex items-center justify-center">
-                                {notifications.length}
+                                {unreadCount}
                             </span>
                         )}
                     </button>
 
                     {/* Danh sách thông báo */}
                     {openNotifications && (
-                        <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg border border-gray-100 overflow-hidden z-50">
-                            <div className="p-3 border-b font-semibold text-gray-700">Thông báo</div>
-                            <div className="max-h-60 overflow-y-auto">
-                                {notifications.length > 0 ? (
-                                    notifications.map((n) => (
-                                        <div
-                                            key={n.id}
-                                            className="px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 cursor-pointer"
-                                        >
-                                            {n.message}
+                        <div className="absolute right-0 mt-2 w-96 bg-white shadow-2xl rounded-xl border border-gray-200 overflow-hidden z-50">
+
+                            {/* Header */}
+                            <div className="p-4 border-b bg-gray-50 font-semibold text-gray-800 flex justify-between">
+                                <span>Thông báo</span>
+                            </div>
+
+                            {/* Scrollable content */}
+                            <div className="max-h-[500px] overflow-y-auto custom-scroll pr-1">
+                                <div>
+                                    {notifications.length > 0 ? (
+                                        notifications.map((n) => (
+                                            <div
+                                                key={n._id}
+                                                onClick={() => handleMarkedRead(n._id)}
+                                                className={`
+                px-4 py-3 border-b cursor-pointer transition
+                ${!n.isReaded ? "bg-blue-50 hover:bg-blue-100/60" : "hover:bg-gray-50"}
+              `}
+                                            >
+                                                <div className="flex items-start gap-3">
+
+                                                    {/* Dot trạng thái */}
+                                                    {!n.isReaded ? (
+                                                        <span className="w-2 h-2 rounded-full bg-blue-500 mt-2"></span>
+                                                    ) : (
+                                                        <span className="w-2 h-2 rounded-full bg-gray-300 mt-2"></span>
+                                                    )}
+
+                                                    {/* Nội dung */}
+                                                    <div className="flex-1">
+                                                        <div className={`text-sm ${!n.isReaded ? "font-semibold text-gray-900" : "text-gray-800"}`}>
+                                                            {n.title}
+                                                        </div>
+                                                        <div className="flex items-center justify-between text-xs text-gray-400 mt-2">
+                                                            <span>{n.sender.userName}</span>
+                                                            <span>{new Date(n.createdAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="px-4 py-5 text-sm text-gray-500 text-center">
+                                            Không có thông báo nào
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                                        Không có thông báo nào
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
+
                 </div>
 
                 {/* User + Dropdown */}
