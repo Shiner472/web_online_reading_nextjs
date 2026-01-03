@@ -20,8 +20,8 @@ const SettingsAdminPage = () => {
   const [descriptionWebsite, setDescriptionWebsite] = useState<string>('');
   const [emailWebsite, setEmailWebsite] = useState<string>('');
   const [settingsId, setSettingsId] = useState<string | null>(null);
+  const [noImagePreview, setNoImagePreview] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-
   const quillRef = useRef<any>(null);
   const cloudinaryWidgetRef = useRef<any>(null);
 
@@ -38,6 +38,7 @@ const SettingsAdminPage = () => {
           setEmailWebsite(res.emailWebsite || '');
           setPhoneNumber(res.phoneWebsite || '');
           setDescriptionWebsite(res.descriptionWebsite || '');
+          setNoImagePreview(res.noImagePreview || '');
         }
       } catch (error) {
         toast.error("❌ Có lỗi xảy ra khi tải cài đặt!");
@@ -55,6 +56,7 @@ const SettingsAdminPage = () => {
       emailWebsite: emailWebsite,
       phoneWebsite: phoneNumber,
       descriptionWebsite: descriptionWebsite,
+      noImagePreview: noImagePreview,
     };
 
     try {
@@ -145,6 +147,26 @@ const SettingsAdminPage = () => {
     iconWidget.open();
   }, []);
 
+  const handleNoImageUpload = useCallback(() => {
+    // @ts-ignore
+    const iconWidget = cloudinary.createUploadWidget(
+      {
+        cloudName: "ddwqvmtmb",
+        uploadPreset: "readNewspaper_web",
+        sources: ["local", "url", "camera"],
+        multiple: false,
+        resourceType: "image",
+      },
+      // @ts-ignore
+      (error, result) => {
+        if (!error && result && result.event === "success") {
+          setNoImagePreview(result.info.secure_url);
+        }
+      }
+    );
+    iconWidget.open();
+  }, []);
+
   return (
     <div className="min-h-screen py-2 px-2">
       <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-md p-8">
@@ -218,7 +240,41 @@ const SettingsAdminPage = () => {
                 )}
               </div>
             </div>
+
+
+            {/* No Image Preview */}
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold text-gray-700 mb-2">
+                Ảnh No Image Mặc Định
+              </h2>
+              <p className="text-gray-500 mb-3 text-sm">
+                Ảnh hiển thị khi không có ảnh cho bài viết hoặc nội dung.
+              </p>
+              <div className="flex items-center space-x-6">
+                <button
+                  type="button"
+                  onClick={handleNoImageUpload}
+                  className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition"
+                >
+                  Chọn ảnh No Image
+                </button>
+
+                {noImagePreview ? (
+                  <img
+                    src={noImagePreview}
+                    alt="No Image Preview"
+                    className="h-24 w-48 rounded-lg border border-gray-300 shadow-sm"
+                  />
+                ) : (
+                  <div className="h-24 w-48 flex items-center justify-center border border-dashed border-gray-300 rounded-lg text-gray-400 text-xs">
+                    Chưa có ảnh
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
+
+
 
           {/* Right Column */}
           <div className="space-y-6">

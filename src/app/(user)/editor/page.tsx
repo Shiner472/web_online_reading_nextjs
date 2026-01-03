@@ -24,6 +24,7 @@ type Article = {
   reason?: string;
   content?: string;
   author?: Author;
+  hasPendingDraft?: boolean;
 };
 
 
@@ -145,9 +146,10 @@ export default function EditorPage() {
     newPage === 1 ? router.push(`/editor`) : router.push(`/editor?page=${newPage}`);
   };
 
-  // =====================
-  // 🔹 Render
-  // =====================
+  const onViewDraft = (newsId: string) => {
+    router.push(`/editor/draft?newsId=${newsId}`);
+  }
+
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -189,6 +191,29 @@ export default function EditorPage() {
                         </span>
                       )}
                     </div>
+                    {a.hasPendingDraft && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-yellow-700 font-medium">
+                          📝 Có bản nháp đang chờ duyệt
+                        </span>
+
+                        <button
+                          onClick={() => onViewDraft(a._id)}
+                          className="inline-flex items-center gap-1.5
+             text-xs font-medium
+             px-3 py-1.5
+             rounded-full
+             border border-yellow-300
+             text-yellow-800
+             bg-yellow-50
+             hover:bg-yellow-100
+             hover:border-yellow-400
+             transition-colors"
+                        >
+                          Xem bản nháp
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

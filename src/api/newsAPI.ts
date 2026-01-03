@@ -25,6 +25,16 @@ class NewsAPI {
         return axiosClient.get(url, { params: { limit, page } });
     }
 
+    static async GetCraftsByNewsId(newsId: string) {
+        const url = `/news/crafts/${newsId}`;
+        return axiosClient.get(url);
+    }
+
+    static async updateListArticlesCanUndo(authorId: string) {
+        const url = `/news/checkCanUndo/${authorId}`;
+        return axiosClient.put(url);
+    }
+
     static async IncreaseViewCount(slug: string) {
         const url = `/news/view/${slug}`;
         return axiosClient.put(url);

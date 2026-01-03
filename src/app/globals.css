@@ -29,6 +29,14 @@ h1, h2, h3, h4, h5, h6, input, p,span, textarea,button,ul,li,blockquote,a,th, td
   color:#0a0a0a;
 }
 
+h1 strong {
+  font-size:x-large;
+}
+
+p strong {
+  font-size:large;
+}
+
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -40,7 +48,9 @@ input:-webkit-autofill:active {
 }
 
 
-
+textarea {
+  padding: 3px 8px;
+}
 
 
 
@@ -58,4 +68,48 @@ input:-webkit-autofill:active {
 .custom-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
+
+
+
+.ql-align-center {
+  text-align: center;
+}
+
+.ql-align-right {
+  text-align: right;
+}
+
+.ql-align-justify {
+  text-align: justify;
+}
+
+.ql-size-small {
+  font-size: 0.85em;
+}
+
+.ql-size-large {
+  font-size: 1.5em;
+}
+
+.ql-size-huge {
+  font-size: 2.5em;
+}
+
+.ql-font-serif {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.ql-font-monospace {
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+.ql-indent-1 {
+  text-indent: 3em;
+}
+.ql-indent-2 {
+  text-indent: 6em;
+}
+.ql-indent-3 {
+  text-indent: 9em;
+} 
 

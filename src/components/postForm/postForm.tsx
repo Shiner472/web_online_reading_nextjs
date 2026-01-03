@@ -94,8 +94,6 @@ export default function PostForm({ mode, initialData, onSuccess }: PostFormProps
             setTitle(initialData.title || "");
             setSummary(initialData.summary || "");
             setFeatured(initialData.featuredImage || null);
-
-            // Giữ category là _id
             if (typeof initialData.category === "object" && initialData.category._id) {
                 setCategory(initialData.category._id);
             } else if (typeof initialData.category === "string") {
@@ -206,6 +204,7 @@ export default function PostForm({ mode, initialData, onSuccess }: PostFormProps
         };
         showLoading();
         try {
+            console.log("Payload:", payload);
             if (mode === "create") {
                 NewsAPI.CreateNews(payload)
                     .then(() => {
@@ -286,7 +285,6 @@ export default function PostForm({ mode, initialData, onSuccess }: PostFormProps
                     <Label>Nội dung</Label>
                     <ReactQuill
                         ref={quillRef}
-                        theme="snow"
                         value={editorHtml}
                         onChange={setEditorHtml}
                         modules={{
