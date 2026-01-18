@@ -8,6 +8,9 @@ import NotificationAPI from "api/notificationAPI";
 import { toast } from "react-toastify";
 import ArticleDetailModal from "../../../components/editor/ArticleDetailModal";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "lib/store";
+import { approveArticle, fetchArticles, rejectArticle, setSelectedArticle, toggleHighlight } from "lib/features/articles/articlesSlice";
 
 
 type Author = {
@@ -29,26 +32,21 @@ type Article = {
 
 
 export default function EditorPage() {
-  const [articleList, setArticleList] = useState<Article[]>([]);
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  // const [articleList, setArticleList] = useState<Article[]>([]);
+  // const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  // const [totalPages, setTotalPages] = useState(1);
+
   const searchParams = useSearchParams();
   const rawPage = searchParams?.get("page");
   const page = rawPage ? Number(rawPage) : 1;
-  const [totalPages, setTotalPages] = useState(1);
   const router = useRouter();
-  const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState<any>(null);
   const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
 
-  // Sort ưu tiên bài đang chờ duyệt
-  const sortedArticles = [...articleList].sort((a, b) => {
-    if (a.status === "pending" && b.status !== "pending") return -1;
-    if (a.status !== "pending" && b.status === "pending") return 1;
-    return 0;
-  });
-
-
-
+  const dispatch = useDispatch<AppDispatch>();
+  const { list, totalPages, selected } = useSelector(
+    (state: RootState) => state.articles
+  );
 
   useEffect(() => {
     AuthAPI.getMe({ token })
@@ -56,91 +54,96 @@ export default function EditorPage() {
       .catch(() => toast.error("Không thể tải thông tin người dùng"));
   }, [token]);
 
+  // useEffect(() => {
+  //   NewsAPI.GetAllNews(page, 10)
+  //     .then((res) => {
+  //       setArticleList(res.data.items)
+  //       setTotalPages(res.data.totalPages)
+  //     })
+  //     .catch(() => toast.error("Không thể tải danh sách bài viết"));
+  // }, [page]);
+
+
   useEffect(() => {
-    NewsAPI.GetAllNews(page, 10)
-      .then((res) => {
-        setArticleList(res.data.items)
-        setTotalPages(res.data.totalPages)
-      })
-      .catch(() => toast.error("Không thể tải danh sách bài viết"));
-  }, [page]);
+    dispatch(fetchArticles({ page, limit: 5, isGetDraft: false }));
+  }, [page, dispatch]);
 
 
-  const handleApprove = async (a: Article) => {
-    if (!user?._id) return toast.error("Bạn chưa đăng nhập!");
-    try {
-      await NewsAPI.UpdateNewsStatus({
-        id: a._id,
-        status: "published",
-        approvedBy: user._id,
-      });
+  // const handleApprove = async (a: Article) => {
+  //   if (!user?._id) return toast.error("Bạn chưa đăng nhập!");
+  //   try {
+  //     await NewsAPI.UpdateNewsStatus({
+  //       id: a._id,
+  //       status: "published",
+  //       approvedBy: user._id,
+  //     });
 
-      toast.success("✅ Duyệt bài viết thành công!");
-      setArticleList((prev) =>
-        prev.map((x) =>
-          x._id === a._id ? { ...x, status: "published", reason: undefined } : x
-        )
-      );
+  //     toast.success("✅ Duyệt bài viết thành công!");
+  //     setArticleList((prev) =>
+  //       prev.map((x) =>
+  //         x._id === a._id ? { ...x, status: "published", reason: undefined } : x
+  //       )
+  //     );
 
-      if (selectedArticle?._id === a._id) {
-        setSelectedArticle({ ...a, status: "published", reason: undefined });
-      }
+  //     if (selectedArticle?._id === a._id) {
+  //       setSelectedArticle({ ...a, status: "published", reason: undefined });
+  //     }
 
-      await NotificationAPI.createNotification({
-        sender: user._id,
-        receiver: a.author?._id,
-        title: "Bài viết của bạn đã được duyệt!",
-        articleId: a._id,
-      });
-    } catch {
-      toast.error("❌ Có lỗi xảy ra, vui lòng thử lại sau.");
-    }
-  };
+  //     await NotificationAPI.createNotification({
+  //       sender: user._id,
+  //       receiver: a.author?._id,
+  //       title: "Bài viết của bạn đã được duyệt!",
+  //       articleId: a._id,
+  //     });
+  //   } catch {
+  //     toast.error("❌ Có lỗi xảy ra, vui lòng thử lại sau.");
+  //   }
+  // };
 
-  const handleHighlight = async (a: Article) => {
-    try {
-      await NewsAPI.HighlightIsFeatured(a._id, { isFeatured: !a.isFeatured });
-      toast.success(
-        a.isFeatured ? "✅ Bỏ nổi bật thành công!" : "✅ Nổi bật bài viết thành công!"
-      );
-      setArticleList((prev) =>
-        prev.map((x) =>
-          x._id === a._id ? { ...x, isFeatured: !x.isFeatured } : x
-        )
-      );
-    } catch {
-      toast.error("❌ Có lỗi xảy ra khi cập nhật nổi bật.");
-    }
-  };
+  // const handleHighlight = async (a: Article) => {
+  //   try {
+  //     await NewsAPI.HighlightIsFeatured(a._id, { isFeatured: !a.isFeatured });
+  //     toast.success(
+  //       a.isFeatured ? "✅ Bỏ nổi bật thành công!" : "✅ Nổi bật bài viết thành công!"
+  //     );
+  //     setArticleList((prev) =>
+  //       prev.map((x) =>
+  //         x._id === a._id ? { ...x, isFeatured: !x.isFeatured } : x
+  //       )
+  //     );
+  //   } catch {
+  //     toast.error("❌ Có lỗi xảy ra khi cập nhật nổi bật.");
+  //   }
+  // };
 
-  const handleReject = async (a: Article) => {
-    const reason = prompt("Nhập lý do từ chối bài viết:");
-    if (!reason) return;
+  // const handleReject = async (a: Article) => {
+  //   const reason = prompt("Nhập lý do từ chối bài viết:");
+  //   if (!reason) return;
 
-    try {
-      await NewsAPI.UpdateNewsStatus({
-        id: a._id,
-        status: "rejected",
-        reason,
-        approvedBy: user._id,
-      });
-      toast.success("⛔ Đã từ chối bài viết!");
-      setArticleList((prev) =>
-        prev.map((x) =>
-          x._id === a._id ? { ...x, status: "rejected", reason } : x
-        )
-      );
+  //   try {
+  //     await NewsAPI.UpdateNewsStatus({
+  //       id: a._id,
+  //       status: "rejected",
+  //       reason,
+  //       approvedBy: user._id,
+  //     });
+  //     toast.success("⛔ Đã từ chối bài viết!");
+  //     setArticleList((prev) =>
+  //       prev.map((x) =>
+  //         x._id === a._id ? { ...x, status: "rejected", reason } : x
+  //       )
+  //     );
 
-      await NotificationAPI.createNotification({
-        sender: user._id,
-        receiver: a.author?._id,
-        title: "Bài viết của bạn đã bị từ chối vì: " + reason,
-        articleId: a._id,
-      });
-    } catch {
-      toast.error("❌ Có lỗi xảy ra, vui lòng thử lại sau.");
-    }
-  };
+  //     await NotificationAPI.createNotification({
+  //       sender: user._id,
+  //       receiver: a.author?._id,
+  //       title: "Bài viết của bạn đã bị từ chối vì: " + reason,
+  //       articleId: a._id,
+  //     });
+  //   } catch {
+  //     toast.error("❌ Có lỗi xảy ra, vui lòng thử lại sau.");
+  //   }
+  // };
 
   const changePage = (newPage: number) => {
     newPage === 1 ? router.push(`/editor`) : router.push(`/editor?page=${newPage}`);
@@ -159,7 +162,7 @@ export default function EditorPage() {
         <div className="bg-white p-6 rounded-2xl shadow">
           <h2 className="text-lg font-semibold mb-4">Danh sách bài viết</h2>
           <div className="divide-y">
-            {articleList.map((a) => (
+            {list.length > 0 && list.map((a) => (
               <div
                 key={a._id}
                 className="flex items-center justify-between py-3 px-2 hover:bg-slate-50 transition rounded-lg"
@@ -183,7 +186,11 @@ export default function EditorPage() {
                       {a.status === "pending" && "⏳ Chờ duyệt"}
                       {a.status === "published" && "✅ Đã xuất bản"}
                       {a.status === "rejected" && (
-                        <span className="text-red-600 font-medium">⛔ Bị từ chối</span>
+                        <>
+                          <span className="text-red-600 font-medium">⛔ Bị từ chối</span>
+                          <span className="text-black-600 font-medium"> (Lý do: {a.reason})</span>
+                        </>
+
                       )}
                       {a.isFeatured && (
                         <span className="ml-2 text-amber-600 font-medium">
@@ -220,7 +227,8 @@ export default function EditorPage() {
                 {/* Actions */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setSelectedArticle(a)}
+                    // onClick={() => setSelectedArticle(a)}
+                    onClick={() => dispatch(setSelectedArticle(a))}
                     className="px-3 py-1 rounded-md bg-blue-50 border border-blue-200 text-sm flex items-center gap-1 text-blue-600 hover:bg-blue-100"
                   >
                     <Eye className="w-4 h-4" /> Chi tiết
@@ -228,27 +236,30 @@ export default function EditorPage() {
 
                   {a.status === "pending" && (
                     <button
-                      onClick={() => handleApprove(a)}
+                      onClick={() => dispatch(approveArticle({ article: a, user }))}
                       className="px-3 py-1 rounded-md bg-green-50 border border-green-200 text-sm flex items-center gap-1 text-green-600 hover:bg-green-100"
                     >
                       <CheckCircle className="w-4 h-4" /> Duyệt
                     </button>
                   )}
 
-                  <button
-                    onClick={() => handleHighlight(a)}
-                    className={`px-3 py-1 rounded-md border text-sm flex items-center gap-1 ${a.isFeatured
-                      ? "bg-amber-500 border-amber-600 text-white hover:bg-amber-600"
-                      : "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100"
-                      }`}
-                  >
-                    <Star className="w-4 h-4" />
-                    {a.isFeatured ? "Đã nổi bật" : "Nổi bật"}
-                  </button>
 
                   {a.status !== "rejected" && (
                     <button
-                      onClick={() => handleReject(a)}
+                      onClick={() => dispatch(toggleHighlight(a))}
+                      className={`px-3 py-1 rounded-md border text-sm flex items-center gap-1 ${a.isFeatured
+                        ? "bg-amber-500 border-amber-600 text-white hover:bg-amber-600"
+                        : "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100"
+                        }`}
+                    >
+                      <Star className="w-4 h-4" />
+                      {a.isFeatured ? "Đã nổi bật" : "Nổi bật"}
+                    </button>
+                  )}
+
+                  {a.status !== "rejected" && (
+                    <button
+                      onClick={() => dispatch(rejectArticle({ article: a, user, reason: "Không đạt tiêu chuẩn." }))}
                       className="px-3 py-1 rounded-md bg-red-50 border border-red-200 text-sm flex items-center gap-1 text-red-600 hover:bg-red-100"
                     >
                       <XCircle className="w-4 h-4" /> Từ chối
@@ -284,10 +295,10 @@ export default function EditorPage() {
         </div>
 
         {/* Modal chi tiết + quét ảnh */}
-        {selectedArticle && (
+        {selected && (
           <ArticleDetailModal
-            article={selectedArticle}
-            onClose={() => setSelectedArticle(null)}
+            article={selected}
+            onClose={() => dispatch(setSelectedArticle(null))}
           />
         )}
       </div>

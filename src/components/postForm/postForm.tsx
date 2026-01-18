@@ -9,6 +9,11 @@ import AuthAPI from "api/authAPI";
 import NewsAPI from "api/newsAPI";
 import { toast } from "react-toastify";
 import { useLoading } from "context/loadingContext";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "lib/store";
+import { saveArticle } from "lib/features/articles/articlesSlice";
+import { getAllCategories } from "lib/features/category/categorySlice";
+import { getMe } from "lib/features/auth/authSlice";
 
 const ReactQuill = dynamic(
     async () => {
@@ -81,13 +86,23 @@ export default function PostForm({ mode, initialData, onSuccess }: PostFormProps
     const [editorHtml, setEditorHtml] = useState(initialData?.content || "");
 
     const [listCategories, setListCategories] = useState<Category[]>([]);
-    const [user, setUser] = useState<any>(null);
+    // const [user, setUser] = useState<any>(null);
 
     const quillRef = useRef<any>(null);
     const cloudinaryWidgetRef = useRef<any>(null);
     const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
 
     const { showLoading, hideLoading } = useLoading();
+
+    const dispatch = useDispatch<AppDispatch>();
+    const { list, user } = useSelector(
+        (state: RootState) => ({
+            list: state.categories.list,
+            user: state.auth.user,
+        })
+    );
+
+
 
     useEffect(() => {
         if (initialData) {
@@ -109,18 +124,20 @@ export default function PostForm({ mode, initialData, onSuccess }: PostFormProps
     // lấy user
     useEffect(() => {
         if (token) {
-            AuthAPI.getMe({ token })
-                .then((res) => setUser(res.data))
-                .catch((err) => toast.error("❌ Đã xảy ra lỗi: " + (err as Error).message));
+            dispatch(getMe(token));
+            // AuthAPI.getMe({ token })
+            //     .then((res) => setUser(res.data))
+            //     .catch((err) => toast.error("❌ Đã xảy ra lỗi: " + (err as Error).message));
         }
-    }, [token]);
+    }, [token, dispatch]);
 
     // lấy categories
     useEffect(() => {
-        CategoryAPI.getAllCategories()
-            .then((res) => setListCategories(res.data))
-            .catch((err) => toast.error("❌ Đã xảy ra lỗi: " + (err as Error).message));
-    }, []);
+        dispatch(getAllCategories())
+        // CategoryAPI.getAllCategories()
+        //     .then((res) => setListCategories(res.data))
+        //     .catch((err) => toast.error("❌ Đã xảy ra lỗi: " + (err as Error).message));
+    }, [dispatch]);
 
     // cloudinary widget
     useEffect(() => {
@@ -193,7 +210,7 @@ export default function PostForm({ mode, initialData, onSuccess }: PostFormProps
         );
     }, []);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const payload = {
             title,
             summary,
@@ -204,27 +221,38 @@ export default function PostForm({ mode, initialData, onSuccess }: PostFormProps
         };
         showLoading();
         try {
-            console.log("Payload:", payload);
-            if (mode === "create") {
-                NewsAPI.CreateNews(payload)
-                    .then(() => {
-                        toast.success("Tạo bài viết thành công!");
-                        onSuccess?.();
-                    })
-                    .catch(() => toast.error("Tạo bài viết thất bại."));
-            } else {
-                NewsAPI.UpdateNews(initialData._id, payload)
-                    .then(() => {
-                        toast.success("Cập nhật bài viết thành công!");
-                        onSuccess?.();
-                    })
-                    .catch(() => toast.error("Cập nhật thất bại."));
-            }
+            await dispatch(saveArticle({
+                payload, mode: mode, newsId: initialData?._id
+            })).unwrap();
+            onSuccess?.()
         } catch (error) {
             toast.error("❌ Đã xảy ra lỗi: " + (error as Error).message);
         } finally {
             hideLoading();
         }
+
+
+        // try {
+        //     if (mode === "create") {
+        //         NewsAPI.CreateNews(payload)
+        //             .then(() => {
+        //                 toast.success("Tạo bài viết thành công!");
+        //                 onSuccess?.();
+        //             })
+        //             .catch(() => toast.error("Tạo bài viết thất bại."));
+        //     } else {
+        //         NewsAPI.UpdateNews(initialData._id, payload)
+        //             .then(() => {
+        //                 toast.success("Cập nhật bài viết thành công!");
+        //                 onSuccess?.();
+        //             })
+        //             .catch(() => toast.error("Cập nhật thất bại."));
+        //     }
+        // } catch (error) {
+        //     toast.error("❌ Đã xảy ra lỗi: " + (error as Error).message);
+        // } finally {
+        //     hideLoading();
+        // }
     };
 
     return (
@@ -248,7 +276,7 @@ export default function PostForm({ mode, initialData, onSuccess }: PostFormProps
                             className="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none cursor-pointer !text-black"
                         >
                             <option value="" disabled hidden>Chọn thể loại</option>
-                            {listCategories.map((cat) => (
+                            {list.map((cat) => (
                                 <option key={cat._id} value={cat._id}>
                                     {cat.name.vi}
                                 </option>

@@ -7,6 +7,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import I18nProvider from "i18n/i18Provider";
 import { LoadingProvider } from "context/loadingContext";
 import Script from "next/script";
+import StoreProvider from "./storeProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +39,9 @@ export default function RootLayout({
       >
         <I18nProvider>
           <LoadingProvider>
-            {children}
+            <StoreProvider>
+              {children}
+            </StoreProvider>
             <ToastContainer />
           </LoadingProvider>
         </I18nProvider>

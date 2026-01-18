@@ -19,6 +19,9 @@ import { toast } from "react-toastify";
 import { useLoading } from "context/loadingContext";
 import NotificationAPI from "api/notificationAPI";
 import ArticleListLayout from "components/articleList/ArticleListLayout";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "lib/store";
+import { getArticlesByAuthor, setSelectedArticle } from "lib/features/articles/articlesSlice";
 
 type Category = {
     _id: string;
@@ -44,12 +47,18 @@ const MyNewsPage = () => {
     const page = rawPage ? Number(rawPage) : 1;
 
     const [user, setUser] = useState<any>(null);
-    const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+    // const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
     const [articleList, setArticleList] = useState<Article[]>([]);
-    const [totalPages, setTotalPages] = useState(1);
+    // const [totalPages, setTotalPages] = useState(1);
 
     const router = useRouter();
     const { showLoading, hideLoading } = useLoading();
+
+
+    const dispatch = useDispatch<AppDispatch>();
+    const { list, totalPages, selected } = useSelector(
+        (state: RootState) => state.articles
+    );
 
     // Get user
     useEffect(() => {
@@ -61,14 +70,18 @@ const MyNewsPage = () => {
     }, [token]);
 
     // Fetch news when user or page changes
+    // useEffect(() => {
+    //     if (user) {
+    //         NewsAPI.GetNewsByAuthor(user._id, 5, page).then((res) => {
+    //             setArticleList(res.data.items);
+    //             setTotalPages(res.data.totalPages);
+    //         });
+    //     }
+    // }, [user, page]);
+
     useEffect(() => {
-        if (user) {
-            NewsAPI.GetNewsByAuthor(user._id, 5, page).then((res) => {
-                setArticleList(res.data.items);
-                setTotalPages(res.data.totalPages);
-            });
-        }
-    }, [user, page]);
+        dispatch(getArticlesByAuthor({ authorId: user?._id, page, limit: 5 }));
+    }, [user, page, dispatch]);
 
     useEffect(() => {
         if (user && articleList.length > 0) {
@@ -371,12 +384,12 @@ const MyNewsPage = () => {
         // </div>
         <ArticleListLayout
             title="📰 Bài viết của tôi"
-            items={articleList}
+            items={list}
             page={page}
             totalPages={totalPages}
             onPageChange={changePage}
-            selectedItem={selectedArticle}
-            closeModal={() => setSelectedArticle(null)}
+            selectedItem={selected}
+            closeModal={() => dispatch(setSelectedArticle(null))}
             renderButtons={() => (
                 <>
                     <button
@@ -391,7 +404,7 @@ const MyNewsPage = () => {
                 <>
                     <div className="flex items-center gap-2 mt-3">
                         <button
-                            onClick={() => setSelectedArticle(a)}
+                            onClick={() => dispatch(setSelectedArticle(a))}
                             className="px-3 py-1 rounded-md bg-blue-50 border border-blue-200 text-sm flex items-center gap-1 text-blue-600 hover:bg-blue-100"
                         >
                             <Eye className="w-4 h-4" /> Xem

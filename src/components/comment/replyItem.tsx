@@ -137,7 +137,7 @@ const ReplyItem = memo(function ReplyItem({
                                 />
                                 <button
                                     onClick={() => handleAddReplyToReply(parentId, reply._id)}
-                                    className="ml-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                    className="ml-2 px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700"
                                 >
                                     Gửi
                                 </button>

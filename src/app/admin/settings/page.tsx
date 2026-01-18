@@ -4,13 +4,6 @@ import dynamic from "next/dynamic";
 import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
-const ReactQuill = dynamic(
-  async () => {
-    const { default: RQ } = await import("react-quill-new");
-    return forwardRef<any, any>((props, ref) => <RQ {...props} ref={ref} />);
-  },
-  { ssr: false }
-);
 
 const SettingsAdminPage = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);

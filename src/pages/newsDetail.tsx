@@ -7,8 +7,13 @@ import NewsAPI from "api/newsAPI";
 import CommentList from "components/comment/commentList";
 import useReadingTracker from "context/readingTracker";
 import dayjs from "dayjs";
+import { getArticleBySlug, increaseViewArticle } from "lib/features/articles/articlesSlice";
+import { getMe } from "lib/features/auth/authSlice";
+import { getAllCommentsBySlug, reactionComment, submitComment, submitReplyComment, submitReplyOfReply } from "lib/features/comment/commentSlice";
+import { AppDispatch, RootState } from "lib/store";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 
@@ -32,7 +37,7 @@ const NewsDetail = () => {
     const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam;
     const [news, setNews] = useState<any>(null);
     const [comments, setComments] = useState<Comment[]>([]);
-    const [user, setUser] = useState<any>(null);
+    // const [user, setUser] = useState<any>(null);
     const [showReactions, setShowReactions] = useState<{ type: 'comment' | 'reply', id: string } | null>(null);
     const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
     const [showReplies, setShowReplies] = useState<Record<string, boolean>>({});
@@ -44,8 +49,17 @@ const NewsDetail = () => {
     const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
     const [listLastestNews, setListLastestNews] = useState<any[]>([]);
 
+    const dispatch = useDispatch<AppDispatch>();
+    const { user, article, listComment } = useSelector(
+        (state: RootState) => ({
+            user: state.auth.user,
+            article: state.articles.article,
+            listComment: state.comments.list
+        })
+    )
 
-    useReadingTracker(news?._id || "", user?._id);
+
+    useReadingTracker(article?._id || "", user?._id);
 
     useEffect(() => {
         const fetchTopViewedNews = async () => {
@@ -79,50 +93,54 @@ const NewsDetail = () => {
 
     useEffect(() => {
         if (token) {
-            AuthAPI.getMe({ token })
-                .then((response) => {
-                    setUser(response.data);
-                })
-                .catch((error) => {
-                    toast.error("Error fetching user info:");
-                });
+            dispatch(getMe(token))
+            // AuthAPI.getMe({ token })
+            //     .then((response) => {
+            //         setUser(response.data);
+            //     })
+            //     .catch((error) => {
+            //         toast.error("Error fetching user info:");
+            //     });
         }
-    }, [token]);
+    }, [token, dispatch]);
 
     useEffect(() => {
-        const fetchNews = async () => {
-            try {
-                const response = await NewsAPI.GetNewsBySlug(slug);
-                console.log("Fetched news detail:", response.data);
-                setNews(response.data);
-            } catch (error) {
-                toast.error("Error fetching news:");
-            }
-        };
+        dispatch(getArticleBySlug(slug))
+        // const fetchNews = async () => {
+        //     try {
+        //         const response = await NewsAPI.GetNewsBySlug(slug);
+        //         console.log("Fetched news detail:", response.data);
+        //         setNews(response.data);
+        //     } catch (error) {
+        //         toast.error("Error fetching news:");
+        //     }
+        // };
 
-        fetchNews();
-    }, [slug]);
-
-    useEffect(() => {
-        NewsAPI.IncreaseViewCount(slug)
-            .then((response) => {
-                console.log("Increased view count:");
-            })
-            .catch((error) => {
-                toast.error("Error increasing view count:");
-            });
-    }, [slug]);
-
+        // fetchNews();
+    }, [slug, dispatch]);
 
     useEffect(() => {
-        CommentAPI.getCommentsBySlug(slug)
-            .then((response) => {
-                setComments(response.data);
-            })
-            .catch((error) => {
-                toast.error("Error fetching comments:");
-            });
-    }, [slug]);
+        dispatch(increaseViewArticle(slug))
+        // NewsAPI.IncreaseViewCount(slug)
+        //     .then((response) => {
+        //         console.log("Increased view count:");
+        //     })
+        //     .catch((error) => {
+        //         toast.error("Error increasing view count:");
+        //     });
+    }, [slug, dispatch]);
+
+
+    useEffect(() => {
+        dispatch(getAllCommentsBySlug(slug))
+        // CommentAPI.getCommentsBySlug(slug)
+        //     .then((response) => {
+        //         setComments(response.data);
+        //     })
+        //     .catch((error) => {
+        //         toast.error("Error fetching comments:");
+        //     });
+    }, [slug, dispatch]);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -143,51 +161,68 @@ const NewsDetail = () => {
     }, [showEmojiPicker]);
 
     const handleCommentSubmit = () => {
-        CommentAPI.createComment({
+        const payload = {
             content: comment,
-            news: news?._id,
+            news: article?._id,
             user: user?._id
-        })
-            .then((response) => {
-                setComments((prev: any) => [
-                    ...prev,
-                    { _id: response.data._id, author: user?.userName, content: comment.trim(), reaction: null, replies: [], createdAt: new Date().toISOString() }
-                ]);
-            })
-            .catch((error) => {
-                console.error("Lỗi khi gửi bình luận:", error);
-            });
+        }
+        dispatch(submitComment(payload));
+
+        // CommentAPI.createComment({
+        //     content: comment,
+        //     news: article?._id,
+        //     user: user?._id
+        // })
+        //     .then((response) => {
+        //         setComments((prev: any) => [
+        //             ...prev,
+        //             { _id: response.data._id, author: user?.userName, content: comment.trim(), reaction: null, replies: [], createdAt: new Date().toISOString() }
+        //         ]);
+        //     })
+        //     .catch((error) => {
+        //         console.error("Lỗi khi gửi bình luận:", error);
+        //     });
     };
 
     const handleAddReply = (parentId: string) => {
-        CommentAPI.createComment({
+        const payload = {
             content: replyInputs[`comment-${parentId}`],
-            news: news?._id,
+            news: article?._id,
             user: user?._id,
             parentComment: parentId
-        }).then((response) => {
-            alert("Phản hồi của bạn đã được gửi!");
-            const key = `comment-${parentId}`;
-            const text = replyInputs[key]?.trim();
-            if (!text) return;
-            setComments((prev) =>
-                prev.map((c: any) =>
-                    c._id === parentId ?
-                        {
-                            ...c,
-                            replies: [
-                                ...c.replies,
-                                { _id: response.data._id, user: user?.userName, content: text, reaction: null, replies: [] }
-                            ]
-                        } : c
-                )
-            );
-            setReplyInputs((prev) => ({ ...prev, [key]: "" }));
-            setShowReplies((prev) => ({ ...prev, [key]: true }));
-        })
-            .catch((error) => {
-                toast.error("Error sending reply:");
-            });
+        }
+        dispatch(submitReplyComment(payload))
+        const key = `comment-${parentId}`;
+        setReplyInputs((prev) => ({ ...prev, [key]: "" }));
+
+        // CommentAPI.createComment({
+        //     content: replyInputs[`comment-${parentId}`],
+        //     news: news?._id,
+        //     user: user?._id,
+        //     parentComment: parentId
+        // }).then((response) => {
+        //     alert("Phản hồi của bạn đã được gửi!");
+        //     const key = `comment-${parentId}`;
+        //     const text = replyInputs[key]?.trim();
+        //     if (!text) return;
+        //     setComments((prev) =>
+        //         prev.map((c: any) =>
+        //             c._id === parentId ?
+        //                 {
+        //                     ...c,
+        //                     replies: [
+        //                         ...c.replies,
+        //                         { _id: response.data._id, user: user?.userName, content: text, reaction: null, replies: [] }
+        //                     ]
+        //                 } : c
+        //         )
+        //     );
+        //     setReplyInputs((prev) => ({ ...prev, [key]: "" }));
+        //     setShowReplies((prev) => ({ ...prev, [key]: true }));
+        // })
+        //     .catch((error) => {
+        //         toast.error("Error sending reply:");
+        //     });
     };
 
     const handleAddReplyToReply = (parentId: string, replyId: string) => {
@@ -195,36 +230,47 @@ const NewsDetail = () => {
         const text = replyInputs[key]?.trim();
         if (!text) return;
 
-        CommentAPI.createComment({
+        const payload = {
             content: text,
-            news: news?._id,
+            news: article?._id,
             user: user?._id,
             parentComment: replyId,
-        }).then((response) => {
-            alert("Phản hồi của bạn đã được gửi!");
-            const newReply: Reply = { _id: response.data._id, author: user?.userName, content: text, reactions: null, replies: [] };
-            setComments((prev) =>
-                prev.map((c) =>
-                    c._id === parentId ? { ...c, replies: addReplyRecursive(c.replies, replyId, newReply) } : c
-                )
-            );
-            setReplyInputs((prev) => ({ ...prev, [key]: "" }));
-            setShowReplies((prev) => ({ ...prev, [key]: true }));
-        })
-            .catch((error) => {
-                toast.error("Error sending reply:");
-            });
+        }
+
+        dispatch(submitReplyOfReply(payload));
+        setReplyInputs((prev) => ({ ...prev, [key]: "" }));
+        setShowReplies((prev) => ({ ...prev, [key]: true }));
+
+        // CommentAPI.createComment({
+        //     content: text,
+        //     news: news?._id,
+        //     user: user?._id,
+        //     parentComment: replyId,
+        // }).then((response) => {
+        //     alert("Phản hồi của bạn đã được gửi!");
+        //     const newReply: Reply = { _id: response.data._id, author: user?.userName, content: text, reactions: null, replies: [] };
+        //     setComments((prev) =>
+        //         prev.map((c) =>
+        //             c._id === parentId ? { ...c, replies: addReplyRecursive(c.replies, replyId, newReply) } : c
+        //         )
+        //     );
+        //     setReplyInputs((prev) => ({ ...prev, [key]: "" }));
+        //     setShowReplies((prev) => ({ ...prev, [key]: true }));
+        // })
+        //     .catch((error) => {
+        //         toast.error("Error sending reply:");
+        //     });
 
     };
 
-    const addReplyRecursive = (list: Reply[], replyId: string, newReply: Reply): Reply[] => {
-        return list.map((r: any) => {
-            if (r._id === replyId) {
-                return { ...r, replies: [...r.replies, newReply] };
-            }
-            return { ...r, replies: addReplyRecursive(r.replies, replyId, newReply) };
-        });
-    };
+    // const addReplyRecursive = (list: Reply[], replyId: string, newReply: Reply): Reply[] => {
+    //     return list.map((r: any) => {
+    //         if (r._id === replyId) {
+    //             return { ...r, replies: [...r.replies, newReply] };
+    //         }
+    //         return { ...r, replies: addReplyRecursive(r.replies, replyId, newReply) };
+    //     });
+    // };
 
     const handleSelectReaction = (
         targetType: 'comment' | 'reply',
@@ -233,70 +279,81 @@ const NewsDetail = () => {
         reactionType: string
     ) => {
 
-        CommentAPI.reactionComment({
+        const payload = {
             commentId: targetId,
-            user: user?._id,
-            reactionType
-        }).then((response) => {
-            setComments((prev) =>
-                prev.map((c) => {
-                    if (targetType === 'comment' && c._id === targetId) {
-                        // toggle cho comment
-                        return {
-                            ...c,
-                            reactions: updateReactions(c.reactions, user?._id, reactionType)
-                        };
-                    }
-                    if (targetType === 'reply') {
-                        return {
-                            ...c,
-                            replies: updateReplyReactionRecursive(c.replies, targetId, reactionType)
-                        };
-                    }
-                    return c;
-                })
-            );
-            setShowReactions(null);
-
-        }).catch((error) => {
-            toast.error("Error sending reply:");
-        });
-    };
-
-    const updateReplyReactionRecursive = (
-        replies: Reply[],
-        targetId: string,
-        reactionType: string
-    ): Reply[] => {
-        return replies.map((r) => {
-            if (r._id === targetId) {
-                return {
-                    ...r,
-                    reactions: updateReactions(r.reactions, user?._id, reactionType)
-                };
-            }
-            return {
-                ...r,
-                replies: updateReplyReactionRecursive(r.replies, targetId, reactionType)
-            };
-        });
-    };
-
-    const updateReactions = (reactions: any = {}, userId: string, reactionType: string) => {
-        const newReactions: any = { ...reactions };
-
-        // Xóa user khỏi tất cả reactions trước
-        Object.keys(newReactions).forEach((key) => {
-            newReactions[key] = newReactions[key].filter((id: string) => id !== userId);
-        });
-
-        // Nếu user chưa chọn hoặc đổi sang type khác → thêm vào
-        if (!reactions[reactionType]?.includes(userId)) {
-            newReactions[reactionType] = [...(newReactions[reactionType] || []), userId];
+            user: user,
+            reactionType,
+            targetId,
+            targetType
         }
 
-        return newReactions;
+        dispatch(reactionComment(payload));
+        setShowReactions(null);
+
+        // CommentAPI.reactionComment({
+        //     commentId: targetId,
+        //     user: user?._id,
+        //     reactionType
+        // }).then((response) => {
+        //     setComments((prev) =>
+        //         prev.map((c) => {
+        //             if (targetType === 'comment' && c._id === targetId) {
+        //                 // toggle cho comment
+        //                 return {
+        //                     ...c,
+        //                     reactions: updateReactions(c.reactions, user?._id, reactionType)
+        //                 };
+        //             }
+        //             if (targetType === 'reply') {
+        //                 return {
+        //                     ...c,
+        //                     replies: updateReplyReactionRecursive(c.replies, targetId, reactionType)
+        //                 };
+        //             }
+        //             return c;
+        //         })
+        //     );
+        //     setShowReactions(null);
+
+        // }).catch((error) => {
+        //     toast.error("Error sending reply:");
+        // });
     };
+
+    // const updateReplyReactionRecursive = (
+    //     replies: Reply[],
+    //     targetId: string,
+    //     reactionType: string
+    // ): Reply[] => {
+    //     return replies.map((r) => {
+    //         if (r._id === targetId) {
+    //             return {
+    //                 ...r,
+    //                 reactions: updateReactions(r.reactions, user?._id, reactionType)
+    //             };
+    //         }
+    //         return {
+    //             ...r,
+    //             replies: updateReplyReactionRecursive(r.replies, targetId, reactionType)
+    //         };
+    //     });
+    // };
+
+    // const updateReactions = (reactions: any = {}, userId: string, reactionType: string) => {
+    //     const newReactions: any = { ...reactions };
+
+    //     // Xóa user khỏi tất cả reactions trước
+    //     Object.keys(newReactions).forEach((key) => {
+    //         newReactions[key] = newReactions[key].filter((id: string) => id !== userId);
+    //     });
+
+    //     // Nếu user chưa chọn hoặc đổi sang type khác → thêm vào
+    //     if (!reactions[reactionType]?.includes(userId)) {
+    //         newReactions[reactionType] = [...(newReactions[reactionType] || []), userId];
+    //     }
+
+    //     return newReactions;
+    // };
 
     return (
         <div className="w-full">
@@ -309,22 +366,22 @@ const NewsDetail = () => {
                         <div className="flex justify-between items-center">
                             <p className="text-base text-gray-400">
                                 <a href="#" className="hover:text-blue-600">
-                                    {news?.category?.name?.vi}
+                                    {article?.category?.name?.vi}
                                 </a>
                             </p>
-                            <p className="text-sm text-gray-500">{dayjs(news?.createdAt).format("DD/MM/YYYY HH:mm [GMT]Z")}</p>
+                            <p className="text-sm text-gray-500">{dayjs(article?.createdAt).format("DD/MM/YYYY HH:mm [GMT]Z")}</p>
                         </div>
                         <div className="mt-2">
-                            <h1 className="text-3xl font-bold">{news?.summary}</h1>
+                            <h1 className="text-3xl font-bold">{article?.summary}</h1>
                         </div>
                         <div className="mt-6">
                             <div
                                 className="mt-6 prose max-w-none"
-                                dangerouslySetInnerHTML={{ __html: news?.content }}
+                                dangerouslySetInnerHTML={{ __html: article?.content }}
                             />
                         </div>
                         <div className="text-xl !text-black mt-4 font-bold flex justify-end">
-                            {news?.author?.userName}
+                            {article?.author?.userName}
                         </div>
                     </div>
                 </div>
@@ -428,7 +485,7 @@ const NewsDetail = () => {
 
                 {/* Danh sách bình luận */}
                 <CommentList
-                    comments={comments}
+                    comments={listComment}
                     showReplies={showReplies}
                     replyInputs={replyInputs}
                     setReplyInputs={setReplyInputs}

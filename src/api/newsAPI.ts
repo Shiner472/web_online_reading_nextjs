@@ -55,9 +55,9 @@ class NewsAPI {
         return axiosPrivate.delete(url);
     }
 
-    static async GetAllNews(page:number, limit:number) {
+    static async GetAllNews(page: number, limit: number, isGetDraft?: boolean) {
         const url = '/news/all';
-        return axiosClient.get(url,{params: {page, limit}});
+        return axiosClient.get(url, { params: { page, limit, isGetDraft }});
     }
 
     static async HighlightIsFeatured(id: string, data: any) {
@@ -92,9 +92,9 @@ class NewsAPI {
         return axiosClient.get(url, { params: { limit, slug } });
     }
 
-    static async SearchNews (keySearch: string){
-        const url ='/news/search';
-        return axiosClient.get(url, {params: {keySearch}});
+    static async SearchNews(keySearch: string) {
+        const url = '/news/search';
+        return axiosClient.get(url, { params: { keySearch } });
     }
 }
 
