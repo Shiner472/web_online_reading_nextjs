@@ -128,8 +128,35 @@ export const increaseViewArticle = createAsyncThunk(
     }
 );
 
+export const fetchTopViewedNews = createAsyncThunk(
+    "articles/fetchTopViewdNews",
+    async (payload: any) => {
+        const response = await NewsAPI.GetTopViewedNews(payload);
+        return response.data;
+    }
+);
+
+export const fetchRelatedNews = createAsyncThunk(
+    "articles/fetchRelatedNews",
+    async (slug: string) => {
+        const response = await NewsAPI.GetRelatedNews(slug);
+        return response.data;
+    }
+);
+
+export const fetchLatestNews = createAsyncThunk(
+    "articles/fetchLatestNews",
+    async (payload: any) => {
+        const response = await NewsAPI.GetLastestNews(payload);
+        return response.data;
+    }
+);
+
 interface ArticlesState {
     list: any[];
+    listTopViewedNews: any[];
+    listRelatedNews: any[];
+    listLastestNews: any[];
     article: any;
     totalPages: number;
     selected: any | null;
@@ -138,6 +165,9 @@ interface ArticlesState {
 
 const initialState: ArticlesState = {
     list: [],
+    listTopViewedNews: [],
+    listRelatedNews: [],
+    listLastestNews: [],
     article: null,
     totalPages: 1,
     selected: null,
@@ -217,6 +247,15 @@ const articleSlice = createSlice({
             })
             .addCase(increaseViewArticle.fulfilled, (state, action) => {
                 state.loading = false;
+            })
+            .addCase(fetchTopViewedNews.fulfilled, (state, action) => {
+                state.listTopViewedNews = action.payload;
+            })
+            .addCase(fetchRelatedNews.fulfilled, (state, action) => {
+                state.listRelatedNews = action.payload;
+            })
+            .addCase(fetchLatestNews.fulfilled, (state, action) => {
+                state.listLastestNews = action.payload;
             })
     },
 });

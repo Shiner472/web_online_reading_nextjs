@@ -87,12 +87,12 @@ class NewsAPI {
     }
 
 
-    static async GetLastestNews(limit: number, slug?: string) {
+    static async GetLastestNews(limit?: number, slug?: string) {
         const url = `/news/latest-articles`;
         return axiosClient.get(url, { params: { limit, slug } });
     }
 
-    static async SearchNews(keySearch: string) {
+    static async SearchNews(keySearch?: string) {
         const url = '/news/search';
         return axiosClient.get(url, { params: { keySearch } });
     }

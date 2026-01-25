@@ -1,6 +1,9 @@
 'use client'
 import AuthAPI from "api/authAPI";
+import { getMe } from "lib/features/auth/authSlice";
+import { AppDispatch, RootState } from "lib/store";
 import { memo, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 function timeAgo(date: Date): string {
     const now = new Date();
@@ -38,22 +41,29 @@ const ReplyItem = memo(function ReplyItem({
     const [visibleReplyCount, setVisibleReplyCount] = useState(2); // Mặc định hiển thị 2 reply
     const token = localStorage.getItem("token");
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const dispatch = useDispatch<AppDispatch>();
+    const { user } = useSelector((state: RootState) => ({
+        user: state.auth.user
+    }));
 
     useEffect(() => {
-        AuthAPI.getMe({ token: token || "" })
-            .then((response) => {
-                setCurrentUserId(response.data._id);
-            })
-            .catch((error) => {
-                console.error("Failed to fetch user profile:", error);
-            });
+        if (token) {
+            dispatch(getMe(token));
+        }
+        // AuthAPI.getMe({ token: token || "" })
+        //     .then((response) => {
+        //         setCurrentUserId(response.data._id);
+        //     })
+        //     .catch((error) => {
+        //         console.error("Failed to fetch user profile:", error);
+        //     });
     }, [token]);
 
     const getCurrentReaction = (comment: any) => {
         if (!comment.reactions) return null;
 
         for (const r of reactionsList) {
-            if (comment.reactions[r.type]?.includes(currentUserId)) {
+            if (comment.reactions[r.type]?.includes(user?._id || null)) {
                 return r; // trả về {type, icon, label}
             }
         }

@@ -35,7 +35,6 @@ const DraftArticlePage = () => {
     const fetchDrafts = async () => {
         try {
             NewsAPI.GetCraftsByNewsId(slug).then((res) => {
-                console.log("Drafts fetched:", res.data);
                 setArticlesDraft(res.data.items);
                 setTotalPages(res.data.totalPages);
             });

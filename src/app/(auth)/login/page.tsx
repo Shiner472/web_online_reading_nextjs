@@ -9,6 +9,9 @@ import { useTranslations } from "next-intl";
 import Cookies from "js-cookie";
 import { useLoading } from "context/loadingContext";
 import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "lib/store";
+import { loginRedux } from "lib/features/auth/authSlice";
 
 const LoginPage = () => {
     const [identify, setIdentify] = useState('');
@@ -18,6 +21,12 @@ const LoginPage = () => {
     const { showLoading, hideLoading } = useLoading();
     const t = useTranslations('LoginPage');
     const router = useRouter();
+
+    const dispatch = useDispatch<AppDispatch>();
+    const {login, register} = useSelector( (state: RootState)=>({
+        login: state.auth.dataLogin,
+        register: state.auth.dataRegister
+    }));
 
     // ===== Đăng nhập truyền thống =====
     const submitLogin = async (e: React.FormEvent) => {
@@ -29,10 +38,11 @@ const LoginPage = () => {
 
         showLoading();
         try {
-            const response = await AuthAPI.login({ identify, password });
-            const token = response.data.token;
-            localStorage.setItem('token', token);
-            Cookies.set('token', token, { expires: 7 });
+            dispatch(loginRedux({ identify, password }))
+            // const response = await AuthAPI.login({ identify, password });
+            // const token = response.data.token;
+            // localStorage.setItem('token', token);
+            // Cookies.set('token', token, { expires: 7 });
             router.push('/');
         } catch (error: any) {
             if (error.response?.status === 401) toast.error(t('invalidCredentials'));

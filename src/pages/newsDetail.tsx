@@ -7,13 +7,13 @@ import NewsAPI from "api/newsAPI";
 import CommentList from "components/comment/commentList";
 import useReadingTracker from "context/readingTracker";
 import dayjs from "dayjs";
-import { getArticleBySlug, increaseViewArticle } from "lib/features/articles/articlesSlice";
+import { fetchLatestNews, fetchRelatedNews, fetchTopViewedNews, getArticleBySlug, increaseViewArticle } from "lib/features/articles/articlesSlice";
 import { getMe } from "lib/features/auth/authSlice";
 import { getAllCommentsBySlug, reactionComment, submitComment, submitReplyComment, submitReplyOfReply } from "lib/features/comment/commentSlice";
 import { AppDispatch, RootState } from "lib/store";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 
@@ -45,50 +45,58 @@ const NewsDetail = () => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const emojiRef = useRef<HTMLDivElement | null>(null);
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    const [topViewedNews, setTopViewedNews] = useState<any[]>([]);
-    const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
-    const [listLastestNews, setListLastestNews] = useState<any[]>([]);
+    // const [topViewedNews, setTopViewedNews] = useState<any[]>([]);
+    // const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
+    // const [listLastestNews, setListLastestNews] = useState<any[]>([]);
 
     const dispatch = useDispatch<AppDispatch>();
-    const { user, article, listComment } = useSelector(
+    const { user, article, listComment, listTopViewedNews, listRelatedNews, listLastestNews } = useSelector(
         (state: RootState) => ({
             user: state.auth.user,
             article: state.articles.article,
-            listComment: state.comments.list
-        })
+            listComment: state.comments.list,
+            listTopViewedNews: state.articles.listTopViewedNews,
+            listRelatedNews: state.articles.listRelatedNews,
+            listLastestNews: state.articles.listLastestNews
+
+        }),
+        shallowEqual
     )
 
 
     useReadingTracker(article?._id || "", user?._id);
 
     useEffect(() => {
-        const fetchTopViewedNews = async () => {
-            try {
-                const response = await NewsAPI.GetTopViewedNews({ limit: 5, category: "", slug });
-                setTopViewedNews(response.data);
-            } catch (error) {
-                toast.error("Error fetching top viewed news:");
-            }
-        };
-        const fetchRelatedNews = async () => {
-            try {
-                const response = await NewsAPI.GetRelatedNews(slug);
-                setRelatedPosts(response.data);
-            } catch (error) {
-                toast.error("Error fetching related news:");
-            }
-        };
-        const fetchLatestNews = async () => {
-            try {
-                const response = await NewsAPI.GetLastestNews(5, slug);
-                setListLastestNews(response.data);
-            } catch (error) {
-                toast.error("Error fetching latest news:");
-            }
-        };
-        fetchLatestNews();
-        fetchTopViewedNews();
-        fetchRelatedNews();
+        // const fetchTopViewedNews = async () => {
+        //     try {
+        //         const response = await NewsAPI.GetTopViewedNews({ limit: 5, category: "", slug });
+        //         setTopViewedNews(response.data);
+        //     } catch (error) {
+        //         toast.error("Error fetching top viewed news:");
+        //     }
+        // };
+        // const fetchRelatedNews = async () => {
+        //     try {
+        //         const response = await NewsAPI.GetRelatedNews(slug);
+        //         setRelatedPosts(response.data);
+        //     } catch (error) {
+        //         toast.error("Error fetching related news:");
+        //     }
+        // };
+        // const fetchLatestNews = async () => {
+        //     try {
+        //         const response = await NewsAPI.GetLastestNews(5, slug);
+        //         setListLastestNews(response.data);
+        //     } catch (error) {
+        //         toast.error("Error fetching latest news:");
+        //     }
+        // };
+        // fetchLatestNews();
+        // fetchTopViewedNews();
+        // fetchRelatedNews();
+        dispatch(fetchTopViewedNews({ limit: 5, category: "", slug }));
+        dispatch(fetchRelatedNews(slug));
+        dispatch(fetchLatestNews({ limit: 5, slug }))
     }, [slug]);
 
     useEffect(() => {
@@ -391,7 +399,7 @@ const NewsDetail = () => {
                     <div className="sticky top-20">
                         <h2 className="text-xl font-bold">Xem nhiều</h2>
                         <ul className="mt-4 space-y-4">
-                            {topViewedNews.map((relatedPost) => (
+                            {listTopViewedNews.map((relatedPost) => (
                                 <li
                                     key={relatedPost._id}
                                     className="border-b border-gray-200 pb-3 hover:bg-gray-50 transition-colors duration-150"
@@ -506,7 +514,7 @@ const NewsDetail = () => {
             <div className="related-posts max-w-4xl mx-auto">
                 <h2 className="text-2xl font-bold mb-4">Bạn có thể quan tâm</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {relatedPosts.length > 0 ? (relatedPosts.map((post) => (
+                    {listRelatedNews.length > 0 ? (listRelatedNews.map((post) => (
                         <div key={post._id} className="border border-gray-300 rounded-lg overflow-hidden">
                             <img src={post.featuredImage} alt={post.title} className="w-full h-48 object-cover" />
                             <div className="p-4">

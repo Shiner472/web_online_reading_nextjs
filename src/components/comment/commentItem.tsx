@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import InteractionButtons from "./interactionButtons";
 import ReplyItem from "./replyItem";
 import AuthAPI from "api/authAPI";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "lib/store";
+import { getMe } from "lib/features/auth/authSlice";
 
 function timeAgo(date: Date): string {
     const now = new Date();
@@ -38,23 +41,30 @@ const CommentItem = ({
     const token = localStorage.getItem("token");
 
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const dispatch = useDispatch<AppDispatch>();
+    const { user } = useSelector((state: RootState) => ({
+        user: state.auth.user
+    }));
 
 
     useEffect(() => {
-        AuthAPI.getMe({ token: token || "" })
-            .then((response) => {
-                setCurrentUserId(response.data._id);
-            })
-            .catch((error) => {
-                console.error("Failed to fetch user profile:", error);
-            });
+        if (token) {
+            dispatch(getMe(token))
+        }
+        // AuthAPI.getMe({ token: token || "" })
+        //     .then((response) => {
+        //         setCurrentUserId(response.data._id);
+        //     })
+        //     .catch((error) => {
+        //         console.error("Failed to fetch user profile:", error);
+        //     });
     }, [token]);
 
     const getCurrentReaction = (comment: any) => {
         if (!comment.reactions) return null;
 
         for (const r of reactionsList) {
-            if (comment.reactions[r.type]?.includes(currentUserId)) {
+            if (comment.reactions[r.type]?.includes(user?._id || null)) {
                 return r; // trả về {type, icon, label}
             }
         }
@@ -91,7 +101,7 @@ const CommentItem = ({
                                 .filter(([_, users]) => (users as string[]).length > 0)
                                 .slice(0, 3) // chỉ lấy tối đa 3 loại cảm xúc
                                 .map(([type], index) => {
-                                    const r = reactionsList.find((x:any) => x.type === type);
+                                    const r = reactionsList.find((x: any) => x.type === type);
                                     return (
                                         <span
                                             key={index}
